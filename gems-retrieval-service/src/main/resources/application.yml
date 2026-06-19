@@ -1,0 +1,23 @@
+﻿server:
+  port: 8083
+spring:
+  application:
+    name: gems-retrieval-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gems_ai
+    username: gems
+    password: gems
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      embedding:
+        options:
+          model: ${SPRING_AI_EMBEDDING_MODEL:text-embedding-3-small}
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+ai:
+  retrieval:
+    top-k: 5

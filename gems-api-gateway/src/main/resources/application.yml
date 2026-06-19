@@ -1,0 +1,51 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: gems-api-gateway
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/gems_ai
+    username: gems
+    password: gems
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+          routes:
+            - id: etl-documents
+              uri: lb://gems-ai-etl-service
+              predicates:
+                - Path=/documents/**
+            - id: media
+              uri: lb://gems-media-service
+              predicates:
+                - Path=/media/**
+            - id: retrieval
+              uri: lb://gems-retrieval-service
+              predicates:
+                - Path=/retrieve/**
+            - id: orchestrator-chat
+              uri: lb://gems-rag-orchestrator-service
+              predicates:
+                - Path=/chat/**
+gateway:
+  security:
+    api-key-header: X-API-Key
+    api-key: ${GATEWAY_API_KEY:change-me}
+  jwt:
+    secret: ${JWT_SECRET:super-secret-key-that-must-be-at-least-256-bits-long-for-HS256-algorithm}
+    expiration-ms: 86400000
+    issuer: gems-api-gateway
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,metrics
+

@@ -1,0 +1,20 @@
+﻿server:
+  port: 8081
+spring:
+  application:
+    name: gems-ai-etl-service
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+ai:
+  chunking:
+    strategy: paragraph
+    max-segment-size: 1000
+    max-overlap-size: 200
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

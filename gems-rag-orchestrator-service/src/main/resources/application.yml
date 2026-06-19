@@ -1,0 +1,19 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: gems-rag-orchestrator-service
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      chat:
+        options:
+          model: ${SPRING_AI_CHAT_MODEL:gpt-4o-mini}
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+services:
+  retrieval:
+    url: ${RETRIEVAL_SERVICE_URL:http://gems-retrieval-service:8083}

@@ -1,0 +1,66 @@
+# AIRAG Architecture Gems POC
+
+Java-only multi-service RAG POC based on `AIRAG-Architecture-POC.pdf`.
+
+## Confirmed architecture
+
+- Spring Boot 3.5 multi-module Java 21 project.
+- Spring Security is enabled at the API Gateway and internal services.
+- Spring Cloud Gateway is the public edge service.
+- Kubernetes `LoadBalancer` exposes only the gateway.
+- Spring Cloud Kubernetes Discovery + Spring Cloud LoadBalancer support resource discovery.
+- LangChain4j is used only for chunking.
+- Spring AI is used for embedding and chat model integration.
+- Whisper is deployed separately as a microservice and called by the media service.
+- PostgreSQL + pgvector stores chunk embeddings.
+- Kafka carries chunk events between ingestion/media and embedding.
+
+## Modules
+
+```text
+airag-poc
+├── gems-api-gateway
+├── gems-ai-common
+├── gems-shared-events
+├── gems-ai-etl-service
+├── gems-media-service
+├── gems-embedding-service
+├── gems-retrieval-service
+├── gems-rag-orchestrator-service
+├── infrastructure
+└── docs
+```
+
+## Build
+
+```powershell
+cd "D:\AI info\v76-gems\airag-poc"
+mvn clean verify
+```
+
+## Run local infrastructure
+
+```powershell
+docker compose -f infrastructure\docker-compose.yml up -d
+```
+
+## Deploy to Kubernetes
+
+```powershell
+cd "D:\AI info\v76-gems\airag-poc\infrastructure\kubernetes"
+kubectl apply -f namespace.yaml
+kubectl apply -f rbac-discovery.yaml
+kubectl apply -f config.yaml
+kubectl apply -f postgres.yaml
+kubectl apply -f kafka.yaml
+kubectl apply -f whisper.yaml
+kubectl apply -f apps.yaml
+```
+
+## Gateway access
+
+Send all client traffic through the gateway with an API key:
+
+```powershell
+curl.exe -H "X-API-Key: change-me" http://localhost:8080/chat
+```

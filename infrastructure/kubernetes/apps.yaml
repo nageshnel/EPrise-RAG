@@ -1,0 +1,245 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gems-api-gateway
+  namespace: airag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gems-api-gateway
+  template:
+    metadata:
+      labels:
+        app: gems-api-gateway
+    spec:
+      serviceAccountName: airag-discovery
+      containers:
+        - name: app
+          image: airag/gems-api-gateway:0.1.0
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: airag-model-api-secrets
+          env:
+            - name: SPRING_R2DBC_URL
+              value: r2dbc:postgresql://postgres:5432/gems_ai
+            - name: SPRING_R2DBC_USERNAME
+              value: gems
+            - name: SPRING_R2DBC_PASSWORD
+              value: gems
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gems-api-gateway
+  namespace: airag
+spec:
+  type: LoadBalancer
+  selector:
+    app: gems-api-gateway
+  ports:
+    - port: 80
+      targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gems-ai-etl-service
+  namespace: airag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gems-ai-etl-service
+  template:
+    metadata:
+      labels:
+        app: gems-ai-etl-service
+    spec:
+      serviceAccountName: airag-discovery
+      containers:
+        - name: app
+          image: airag/gems-ai-etl-service:0.1.0
+          ports:
+            - containerPort: 8081
+          env:
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:9092
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gems-ai-etl-service
+  namespace: airag
+spec:
+  selector:
+    app: gems-ai-etl-service
+  ports:
+    - port: 8081
+      targetPort: 8081
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gems-media-service
+  namespace: airag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gems-media-service
+  template:
+    metadata:
+      labels:
+        app: gems-media-service
+    spec:
+      serviceAccountName: airag-discovery
+      containers:
+        - name: app
+          image: airag/gems-media-service:0.1.0
+          ports:
+            - containerPort: 8085
+          env:
+            - name: SERVICES_WHISPER_URL
+              value: http://whisper-service:8090
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:9092
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gems-media-service
+  namespace: airag
+spec:
+  selector:
+    app: gems-media-service
+  ports:
+    - port: 8085
+      targetPort: 8085
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gems-embedding-service
+  namespace: airag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gems-embedding-service
+  template:
+    metadata:
+      labels:
+        app: gems-embedding-service
+    spec:
+      serviceAccountName: airag-discovery
+      containers:
+        - name: app
+          image: airag/gems-embedding-service:0.1.0
+          ports:
+            - containerPort: 8082
+          envFrom:
+            - secretRef:
+                name: airag-model-api-secrets
+            - configMapRef:
+                name: airag-model-api-config
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/gems_ai
+            - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
+              value: kafka:9092
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gems-embedding-service
+  namespace: airag
+spec:
+  selector:
+    app: gems-embedding-service
+  ports:
+    - port: 8082
+      targetPort: 8082
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gems-retrieval-service
+  namespace: airag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gems-retrieval-service
+  template:
+    metadata:
+      labels:
+        app: gems-retrieval-service
+    spec:
+      serviceAccountName: airag-discovery
+      containers:
+        - name: app
+          image: airag/gems-retrieval-service:0.1.0
+          ports:
+            - containerPort: 8083
+          envFrom:
+            - secretRef:
+                name: airag-model-api-secrets
+            - configMapRef:
+                name: airag-model-api-config
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres:5432/gems_ai
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gems-retrieval-service
+  namespace: airag
+spec:
+  selector:
+    app: gems-retrieval-service
+  ports:
+    - port: 8083
+      targetPort: 8083
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gems-rag-orchestrator-service
+  namespace: airag
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gems-rag-orchestrator-service
+  template:
+    metadata:
+      labels:
+        app: gems-rag-orchestrator-service
+    spec:
+      serviceAccountName: airag-discovery
+      containers:
+        - name: app
+          image: airag/gems-rag-orchestrator-service:0.1.0
+          ports:
+            - containerPort: 8084
+          envFrom:
+            - secretRef:
+                name: airag-model-api-secrets
+            - configMapRef:
+                name: airag-model-api-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gems-rag-orchestrator-service
+  namespace: airag
+spec:
+  selector:
+    app: gems-rag-orchestrator-service
+  ports:
+    - port: 8084
+      targetPort: 8084
