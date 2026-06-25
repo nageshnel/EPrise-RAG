@@ -1,4 +1,4 @@
-﻿apiVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: whisper-service
@@ -23,6 +23,13 @@ spec:
               value: base
             - name: ASR_ENGINE
               value: openai_whisper
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "2"
 ---
 apiVersion: v1
 kind: Service

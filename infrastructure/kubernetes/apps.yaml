@@ -29,6 +29,13 @@ spec:
               value: gems
             - name: SPRING_R2DBC_PASSWORD
               value: gems
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -67,6 +74,13 @@ spec:
           env:
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
               value: kafka:9092
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -106,6 +120,13 @@ spec:
               value: http://whisper-service:8090
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
               value: kafka:9092
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -150,6 +171,13 @@ spec:
               value: jdbc:postgresql://postgres:5432/gems_ai
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
               value: kafka:9092
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -192,6 +220,13 @@ spec:
           env:
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://postgres:5432/gems_ai
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service
@@ -231,6 +266,13 @@ spec:
                 name: airag-model-api-secrets
             - configMapRef:
                 name: airag-model-api-config
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
 ---
 apiVersion: v1
 kind: Service

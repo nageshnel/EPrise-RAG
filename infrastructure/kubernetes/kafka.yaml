@@ -1,4 +1,4 @@
-﻿apiVersion: apps/v1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: kafka
@@ -36,6 +36,13 @@ spec:
               value: "true"
             - name: ALLOW_PLAINTEXT_LISTENER
               value: "yes"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "250m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
 ---
 apiVersion: v1
 kind: Service
