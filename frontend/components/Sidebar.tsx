@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useRouter, usePathname } from 'expo-router';
 import { AuthUser, UserRole } from '../stores/authStore';
+import { useThemeStore, useThemeColors } from '../stores/themeStore';
 
 interface NavItem {
   name: string;
@@ -29,25 +30,32 @@ interface RoleBadgeStyle {
 export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
+  const mode = useThemeStore((state) => state.mode);
+  const toggleTheme = useThemeStore((state) => state.toggle);
+  const theme = useThemeColors();
 
   const W_EXPANDED = 260;
   const W_COLLAPSED = 64;
   const sidebarWidth = collapsed ? W_COLLAPSED : W_EXPANDED;
 
   const roleBadge: RoleBadgeStyle = user.role === 'ADMIN'
-    ? { label: 'ADMIN', color: '#a78bfa', bg: 'rgba(124,58,237,0.15)', border: 'rgba(124,58,237,0.3)' }
-    : { label: 'USER',  color: '#60a5fa', bg: 'rgba(37,99,235,0.15)',  border: 'rgba(37,99,235,0.3)' };
+    ? (mode === 'dark'
+      ? { label: 'ADMIN', color: '#a78bfa', bg: 'rgba(124,58,237,0.15)', border: 'rgba(124,58,237,0.3)' }
+      : { label: 'ADMIN', color: '#1e40af', bg: 'rgba(59,130,246,0.15)', border: 'rgba(59,130,246,0.3)' })
+    : (mode === 'dark'
+      ? { label: 'USER',  color: '#60a5fa', bg: 'rgba(37,99,235,0.15)',  border: 'rgba(37,99,235,0.3)' }
+      : { label: 'USER',  color: '#2563eb', bg: 'rgba(37,99,235,0.1)',  border: 'rgba(37,99,235,0.2)' });
 
   return (
     <View style={{
       width: sidebarWidth, minWidth: sidebarWidth,
-      backgroundColor: 'rgba(10,10,26,0.95)',
+      backgroundColor: theme.nav.bg,
       borderRightWidth: 1,
-      borderRightColor: 'rgba(255,255,255,0.06)',
+      borderRightColor: theme.border.default,
       flexDirection: 'column',
       justifyContent: 'space-between',
       // Smooth width transition via CSS on web
-      ...(typeof document !== 'undefined' ? { transition: 'width 0.25s ease, min-width 0.25s ease' } as any : {}),
+      ...(typeof document !== 'undefined' ? { transition: 'width 0.25s ease, min-width 0.25s ease, background-color 0.25s ease, border-color 0.25s ease' } as any : {}),
     }}>
 
       {/* ═══ Top section ═══ */}
@@ -57,7 +65,7 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
         <View style={{
           paddingHorizontal: collapsed ? 12 : 24,
           paddingVertical: collapsed ? 16 : 28,
-          borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)',
+          borderBottomWidth: 1, borderBottomColor: theme.border.default,
           marginBottom: 8,
           flexDirection: 'row', alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'space-between',
@@ -67,11 +75,11 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
             <Pressable onPress={onToggle} style={{ alignItems: 'center' }}>
               <View style={{
                 width: 38, height: 38, borderRadius: 10,
-                backgroundColor: 'rgba(124,58,237,0.2)',
-                borderWidth: 1, borderColor: 'rgba(124,58,237,0.4)',
+                backgroundColor: mode === 'dark' ? 'rgba(124,58,237,0.2)' : 'rgba(59,130,246,0.1)',
+                borderWidth: 1, borderColor: mode === 'dark' ? 'rgba(124,58,237,0.4)' : 'rgba(59,130,246,0.3)',
                 alignItems: 'center', justifyContent: 'center',
               }}>
-                <Text style={{ fontSize: 18, color: '#a78bfa' }}>⬡</Text>
+                <Text style={{ fontSize: 18, color: theme.accent.primary }}>⬡</Text>
               </View>
             </Pressable>
           ) : (
@@ -80,17 +88,17 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <View style={{
                   width: 38, height: 38, borderRadius: 10,
-                  backgroundColor: 'rgba(124,58,237,0.2)',
-                  borderWidth: 1, borderColor: 'rgba(124,58,237,0.4)',
+                  backgroundColor: mode === 'dark' ? 'rgba(124,58,237,0.2)' : 'rgba(59,130,246,0.1)',
+                  borderWidth: 1, borderColor: mode === 'dark' ? 'rgba(124,58,237,0.4)' : 'rgba(59,130,246,0.3)',
                   alignItems: 'center', justifyContent: 'center',
                 }}>
-                  <Text style={{ fontSize: 18, color: '#a78bfa' }}>⬡</Text>
+                  <Text style={{ fontSize: 18, color: theme.accent.primary }}>⬡</Text>
                 </View>
                 <View>
-                  <Text style={{ color: '#f1f5f9', fontWeight: '800', fontSize: 15, letterSpacing: 0.5 }}>
-                    GEMS<Text style={{ color: '#8b5cf6' }}>.</Text>AIRAG
+                  <Text style={{ color: theme.text.primary, fontWeight: '800', fontSize: 15, letterSpacing: 0.5 }}>
+                    GEMS<Text style={{ color: theme.accent.primary }}>.</Text>AIRAG
                   </Text>
-                  <Text style={{ color: '#475569', fontSize: 10, letterSpacing: 1.5, marginTop: 1 }}>
+                  <Text style={{ color: theme.text.muted, fontSize: 10, letterSpacing: 1.5, marginTop: 1 }}>
                     RAG GATEWAY
                   </Text>
                 </View>
@@ -101,11 +109,13 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
                 style={({ pressed }) => ({
                   width: 28, height: 28, borderRadius: 7,
                   alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: pressed ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.04)',
-                  borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+                  backgroundColor: pressed 
+                    ? (mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)') 
+                    : (mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+                  borderWidth: 1, borderColor: theme.border.default,
                 })}
               >
-                <Text style={{ color: '#64748b', fontSize: 12, fontWeight: '700' }}>◂</Text>
+                <Text style={{ color: theme.text.secondary, fontSize: 12, fontWeight: '700' }}>◂</Text>
               </Pressable>
             </>
           )}
@@ -114,7 +124,7 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
         {/* ── Section label ── */}
         {!collapsed && (
           <Text style={{
-            color: '#334155', fontSize: 10, letterSpacing: 2, fontWeight: '700',
+            color: theme.text.muted, fontSize: 10, letterSpacing: 2, fontWeight: '700',
             paddingHorizontal: 24, paddingVertical: 8, marginTop: 4,
           }}>
             NAVIGATION
@@ -137,8 +147,8 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
                   borderRadius: 10, marginBottom: 2,
                 },
                 isActive ? {
-                  backgroundColor: 'rgba(124,58,237,0.12)',
-                  ...(collapsed ? {} : { borderLeftWidth: 2, borderLeftColor: '#7c3aed', paddingLeft: 12 }),
+                  backgroundColor: theme.nav.active,
+                  ...(collapsed ? {} : { borderLeftWidth: 2, borderLeftColor: theme.accent.primary, paddingLeft: 12 }),
                 } : {
                   backgroundColor: 'transparent',
                 }]}
@@ -146,7 +156,7 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
                 {/* Icon: always visible */}
                 <View style={collapsed && isActive ? {
                   width: 36, height: 36, borderRadius: 10,
-                  backgroundColor: 'rgba(124,58,237,0.2)',
+                  backgroundColor: mode === 'dark' ? 'rgba(124,58,237,0.2)' : 'rgba(59,130,246,0.15)',
                   alignItems: 'center', justifyContent: 'center',
                 } : {
                   width: collapsed ? 36 : undefined, height: collapsed ? 36 : undefined,
@@ -156,7 +166,7 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
                 }}>
                   <Text style={{
                     fontSize: collapsed ? 18 : 16,
-                    color: isActive ? '#a78bfa' : '#475569',
+                    color: isActive ? theme.accent.primary : theme.text.secondary,
                   }}>{item.icon}</Text>
                 </View>
 
@@ -165,14 +175,14 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
                   <>
                     <Text style={{
                       fontSize: 13, fontWeight: isActive ? '600' : '500',
-                      color: isActive ? '#e2d9fe' : '#64748b',
+                      color: isActive ? theme.text.primary : theme.text.secondary,
                       letterSpacing: 0.2,
                     }}>{item.name}</Text>
                     {isActive && (
                       <View style={{ flex: 1, alignItems: 'flex-end' }}>
                         <View style={{
                           width: 6, height: 6, borderRadius: 3,
-                          backgroundColor: '#7c3aed',
+                          backgroundColor: theme.accent.primary,
                         }} />
                       </View>
                     )}
@@ -187,27 +197,27 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
         {user.role === 'ADMIN' && !collapsed && (
           <View style={{
             marginHorizontal: 12, marginTop: 20,
-            borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)',
+            borderTopWidth: 1, borderTopColor: theme.border.default,
             paddingTop: 16,
           }}>
             <Text style={{
-              color: '#334155', fontSize: 10, letterSpacing: 2, fontWeight: '700',
+              color: theme.text.muted, fontSize: 10, letterSpacing: 2, fontWeight: '700',
               paddingHorizontal: 12, paddingBottom: 8,
             }}>
               OBSERVABILITY
             </Text>
             <View style={{
               borderRadius: 10,
-              backgroundColor: 'rgba(6,182,212,0.06)',
-              borderWidth: 1, borderColor: 'rgba(6,182,212,0.12)',
+              backgroundColor: mode === 'dark' ? 'rgba(6,182,212,0.06)' : 'rgba(59,130,246,0.05)',
+              borderWidth: 1, borderColor: mode === 'dark' ? 'rgba(6,182,212,0.12)' : 'rgba(59,130,246,0.15)',
               padding: 12,
             }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
                 <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ade80', marginRight: 8 }} />
-                <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '600' }}>SkyWalking OAP</Text>
+                <Text style={{ color: theme.text.secondary, fontSize: 11, fontWeight: '600' }}>SkyWalking OAP</Text>
               </View>
               <Text style={{ color: '#4ade80', fontSize: 12, fontWeight: '700' }}>Connected</Text>
-              <Text style={{ color: '#334155', fontSize: 10, marginTop: 2 }}>oap:11800 · grpc active</Text>
+              <Text style={{ color: theme.text.muted, fontSize: 10, marginTop: 2 }}>oap:11800 · grpc active</Text>
             </View>
           </View>
         )}
@@ -217,8 +227,8 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
           <View style={{ alignItems: 'center', marginTop: 16 }}>
             <View style={{
               width: 36, height: 36, borderRadius: 10,
-              backgroundColor: 'rgba(6,182,212,0.08)',
-              borderWidth: 1, borderColor: 'rgba(6,182,212,0.15)',
+              backgroundColor: mode === 'dark' ? 'rgba(6,182,212,0.08)' : 'rgba(59,130,246,0.06)',
+              borderWidth: 1, borderColor: mode === 'dark' ? 'rgba(6,182,212,0.15)' : 'rgba(59,130,246,0.12)',
               alignItems: 'center', justifyContent: 'center',
             }}>
               <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: '#4ade80' }} />
@@ -229,6 +239,42 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
 
       {/* ═══ Bottom section ═══ */}
       <View>
+
+        {/* ── Theme Toggle ── */}
+        <View style={{
+          paddingHorizontal: collapsed ? 8 : 16,
+          paddingVertical: 8,
+          marginBottom: 4,
+          flexDirection: 'row',
+          justifyContent: collapsed ? 'center' : 'space-between',
+          alignItems: 'center',
+          borderTopWidth: 1,
+          borderTopColor: theme.border.default,
+          paddingTop: 12,
+        }}>
+          {!collapsed && (
+            <Text style={{ color: theme.text.secondary, fontSize: 12, fontWeight: '500' }}>
+              Theme: {mode === 'light' ? 'Light' : 'Dark'}
+            </Text>
+          )}
+          <Pressable
+            onPress={toggleTheme}
+            style={({ pressed }) => ({
+              width: collapsed ? 38 : 36,
+              height: collapsed ? 38 : 36,
+              borderRadius: 10,
+              backgroundColor: pressed 
+                ? (mode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.08)')
+                : (mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+              borderWidth: 1,
+              borderColor: theme.border.default,
+              alignItems: 'center',
+              justifyContent: 'center',
+            })}
+          >
+            <Text style={{ fontSize: 16 }}>{mode === 'light' ? '🌙' : '☀️'}</Text>
+          </Pressable>
+        </View>
 
         {/* ── User profile ── */}
         {collapsed ? (
@@ -252,20 +298,20 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
               style={({ pressed }) => ({
                 width: 38, height: 38, borderRadius: 10,
                 alignItems: 'center', justifyContent: 'center',
-                backgroundColor: pressed ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.04)',
-                borderWidth: 1, borderColor: pressed ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.06)',
+                backgroundColor: pressed ? 'rgba(239,68,68,0.15)' : (mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+                borderWidth: 1, borderColor: pressed ? 'rgba(239,68,68,0.25)' : theme.border.default,
               })}
             >
-              <Text style={{ color: '#64748b', fontSize: 14 }}>⏻</Text>
+              <Text style={{ color: theme.text.secondary, fontSize: 14 }}>⏻</Text>
             </Pressable>
           </View>
         ) : (
           /* Expanded: full profile card */
           <View style={{
             marginHorizontal: 12, marginBottom: 12,
-            backgroundColor: 'rgba(255,255,255,0.03)',
+            backgroundColor: theme.bg.card,
             borderRadius: 12, padding: 14,
-            borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+            borderWidth: 1, borderColor: theme.border.default,
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 }}>
               <View style={{
@@ -279,10 +325,10 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
                 </Text>
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={{ color: '#e2e8f0', fontSize: 12, fontWeight: '600' }} numberOfLines={1}>
+                <Text style={{ color: theme.text.primary, fontSize: 12, fontWeight: '600' }} numberOfLines={1}>
                   {user.name}
                 </Text>
-                <Text style={{ color: '#475569', fontSize: 10, marginTop: 1 }} numberOfLines={1}>
+                <Text style={{ color: theme.text.secondary, fontSize: 10, marginTop: 1 }} numberOfLines={1}>
                   {user.email}
                 </Text>
               </View>
@@ -301,11 +347,13 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
               onPress={onLogout}
               style={({ pressed }) => ({
                 paddingVertical: 8, borderRadius: 8, alignItems: 'center',
-                backgroundColor: pressed ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.04)',
-                borderWidth: 1, borderColor: pressed ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.06)',
+                backgroundColor: pressed 
+                  ? 'rgba(239,68,68,0.15)' 
+                  : (mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'),
+                borderWidth: 1, borderColor: pressed ? 'rgba(239,68,68,0.3)' : theme.border.default,
               })}
             >
-              <Text style={{ color: '#64748b', fontSize: 11, fontWeight: '600' }}>Sign Out</Text>
+              <Text style={{ color: theme.text.secondary, fontSize: 11, fontWeight: '600' }}>Sign Out</Text>
             </Pressable>
           </View>
         )}
@@ -313,26 +361,26 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
         {/* ── Version bar ── */}
         <View style={{
           padding: collapsed ? 10 : 16, paddingTop: 12,
-          borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)',
+          borderTopWidth: 1, borderTopColor: theme.border.default,
           flexDirection: collapsed ? 'column' : 'row',
           alignItems: 'center',
           justifyContent: collapsed ? 'center' : 'space-between',
           gap: collapsed ? 6 : 0,
         }}>
           {collapsed ? (
-            <Text style={{ color: '#334155', fontSize: 9, fontWeight: '600' }}>v0.1</Text>
+            <Text style={{ color: theme.text.muted, fontSize: 9, fontWeight: '600' }}>v0.1</Text>
           ) : (
             <>
               <View>
-                <Text style={{ color: '#334155', fontSize: 10, letterSpacing: 1 }}>BUILD</Text>
-                <Text style={{ color: '#475569', fontSize: 11, fontWeight: '600' }}>v0.1.0-beta</Text>
+                <Text style={{ color: theme.text.muted, fontSize: 10, letterSpacing: 1 }}>BUILD</Text>
+                <Text style={{ color: theme.text.secondary, fontSize: 11, fontWeight: '600' }}>v0.1.0-beta</Text>
               </View>
               <View style={{
                 paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
-                backgroundColor: 'rgba(124,58,237,0.1)',
-                borderWidth: 1, borderColor: 'rgba(124,58,237,0.2)',
+                backgroundColor: mode === 'dark' ? 'rgba(124,58,237,0.1)' : 'rgba(59,130,246,0.1)',
+                borderWidth: 1, borderColor: mode === 'dark' ? 'rgba(124,58,237,0.2)' : 'rgba(59,130,246,0.2)',
               }}>
-                <Text style={{ color: '#8b5cf6', fontSize: 10, fontWeight: '700' }}>POC</Text>
+                <Text style={{ color: theme.accent.primary, fontSize: 10, fontWeight: '700' }}>POC</Text>
               </View>
             </>
           )}
