@@ -31,6 +31,12 @@ airag-poc
 └── docs
 ```
 
+## Development & Planning Workflow
+
+To maintain a structured and traceable record of changes:
+1. **Implementation Plan**: Whenever an implementation plan is generated, save and download a copy of it to the `docs/` folder using a descriptive context-based name (e.g., `docs/<feature_context>_implementation_plan.md`).
+2. **Task Checklist**: Along with the plan, save and download the corresponding task details checklist file to the `docs/` folder (e.g., `docs/<feature_context>_task.md`) to document the progress of each step.
+
 ## Build
 
 ```powershell
