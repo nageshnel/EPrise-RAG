@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Text, View, ScrollView, TextInput, Pressable, ActivityIndicator, Platform } from 'react-native';
+import { useAuthStore } from '../stores/authStore';
 
 interface Message {
   id: string;
@@ -62,11 +63,15 @@ const MODELS: ModelOption[] = [
 ];
 
 export default function ChatPlayground() {
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'ADMIN';
+  const userName = user?.name?.split(' ')[0] ?? 'there';
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '0',
       sender: 'ASSISTANT',
-      text: "Hello! I'm your GEMS RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?",
+      text: `Hello ${userName}! I'm your GEMS RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
     }
   ]);
   const [inputText, setInputText] = useState('');
@@ -357,7 +362,7 @@ export default function ChatPlayground() {
       </View>
 
       {/* ── CONFIG PANEL (web, right side) ── */}
-      {Platform.OS === 'web' && (
+      {Platform.OS === 'web' && isAdmin && (
         <View style={{
           width: 300,
           backgroundColor: 'rgba(10,10,26,0.95)',

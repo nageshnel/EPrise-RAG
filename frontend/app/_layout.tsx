@@ -1,29 +1,66 @@
 import "../global.css";
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, Pressable, Platform } from 'react-native';
 import { Slot, useRouter, usePathname } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useAuthStore, UserRole } from '../stores/authStore';
+import LoginScreen from './login';
 
 interface NavItem {
   name: string;
   path: string;
   icon: string;
   shortName: string;
+  /** Which roles can see this nav item */
+  roles: UserRole[];
 }
 
-const navItems: NavItem[] = [
-  { name: 'Dashboard',       path: '/',          icon: '◈',  shortName: 'Home'    },
-  { name: 'RAG Chat',        path: '/chat',      icon: '◎',  shortName: 'Chat'    },
-  { name: 'Document Center', path: '/documents', icon: '⬡',  shortName: 'Docs'    },
-  { name: 'Settings',        path: '/settings',  icon: '◇',  shortName: 'Config'  },
+const ALL_NAV_ITEMS: NavItem[] = [
+  { name: 'Dashboard',       path: '/',          icon: '◈',  shortName: 'Home',   roles: ['ADMIN']         },
+  { name: 'RAG Chat',        path: '/chat',      icon: '◎',  shortName: 'Chat',   roles: ['ADMIN', 'USER'] },
+  { name: 'Document Center', path: '/documents', icon: '⬡',  shortName: 'Docs',   roles: ['ADMIN']         },
+  { name: 'Settings',        path: '/settings',  icon: '◇',  shortName: 'Config', roles: ['ADMIN']         },
 ];
 
 export default function RootLayout() {
   const router = useRouter();
   const pathname = usePathname();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, logout, restoreSession } = useAuthStore();
 
   const isWeb = Platform.OS === 'web';
+
+  // ── Compute derived state unconditionally (safe when user is null) ──
+  const userRole = user?.role ?? 'USER';
+  const navItems = ALL_NAV_ITEMS.filter(item => item.roles.includes(userRole));
+  const isOnAllowedRoute = navItems.some(item => item.path === pathname);
+
+  const roleBadge = userRole === 'ADMIN'
+    ? { label: 'ADMIN', color: '#a78bfa', bg: 'rgba(124,58,237,0.15)', border: 'rgba(124,58,237,0.3)' }
+    : { label: 'USER',  color: '#60a5fa', bg: 'rgba(37,99,235,0.15)',  border: 'rgba(37,99,235,0.3)' };
+
+  // ── ALL hooks must be above any early return ──
+
+  // Restore session on mount
+  useEffect(() => {
+    restoreSession();
+  }, []);
+
+  // Redirect USER-role away from admin-only routes
+  useEffect(() => {
+    if (user && !isOnAllowedRoute && userRole === 'USER') {
+      router.replace('/chat' as any);
+    }
+  }, [pathname, isOnAllowedRoute, userRole, user]);
+
+  // ── NOT AUTHENTICATED → show Login screen ──
+  if (!user) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#05050f' }}>
+        <StatusBar style="light" />
+        <LoginScreen />
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#05050f' }}>
@@ -47,7 +84,6 @@ export default function RootLayout() {
               borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.05)',
               marginBottom: 8,
             }}>
-              {/* Logo mark */}
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                 <View style={{
                   width: 38, height: 38, borderRadius: 10,
@@ -68,12 +104,12 @@ export default function RootLayout() {
               </View>
             </View>
 
-            {/* Nav section label */}
+            {/* Nav label */}
             <Text style={{ color: '#334155', fontSize: 10, letterSpacing: 2, fontWeight: '700', paddingHorizontal: 24, paddingVertical: 8, marginTop: 4 }}>
               NAVIGATION
             </Text>
 
-            {/* Nav items */}
+            {/* Nav items — role-filtered */}
             <View style={{ paddingHorizontal: 12 }}>
               {navItems.map((item) => {
                 const isActive = pathname === item.path;
@@ -117,46 +153,103 @@ export default function RootLayout() {
               })}
             </View>
 
-            {/* Divider + SkyWalking section */}
-            <View style={{
-              marginHorizontal: 12, marginTop: 20,
-              borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)',
-              paddingTop: 16,
-            }}>
-              <Text style={{ color: '#334155', fontSize: 10, letterSpacing: 2, fontWeight: '700', paddingHorizontal: 12, paddingBottom: 8 }}>
-                OBSERVABILITY
-              </Text>
+            {/* ── SkyWalking section (admin only) ── */}
+            {user.role === 'ADMIN' && (
               <View style={{
-                marginHorizontal: 0, borderRadius: 10,
-                backgroundColor: 'rgba(6,182,212,0.06)',
-                borderWidth: 1, borderColor: 'rgba(6,182,212,0.12)',
-                padding: 12,
+                marginHorizontal: 12, marginTop: 20,
+                borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)',
+                paddingTop: 16,
               }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
-                  <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ade80', marginRight: 8 }} />
-                  <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '600' }}>SkyWalking OAP</Text>
+                <Text style={{ color: '#334155', fontSize: 10, letterSpacing: 2, fontWeight: '700', paddingHorizontal: 12, paddingBottom: 8 }}>
+                  OBSERVABILITY
+                </Text>
+                <View style={{
+                  marginHorizontal: 0, borderRadius: 10,
+                  backgroundColor: 'rgba(6,182,212,0.06)',
+                  borderWidth: 1, borderColor: 'rgba(6,182,212,0.12)',
+                  padding: 12,
+                }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 6 }}>
+                    <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: '#4ade80', marginRight: 8 }} />
+                    <Text style={{ color: '#94a3b8', fontSize: 11, fontWeight: '600' }}>SkyWalking OAP</Text>
+                  </View>
+                  <Text style={{ color: '#4ade80', fontSize: 12, fontWeight: '700' }}>Connected</Text>
+                  <Text style={{ color: '#334155', fontSize: 10, marginTop: 2 }}>oap:11800 · grpc active</Text>
                 </View>
-                <Text style={{ color: '#4ade80', fontSize: 12, fontWeight: '700' }}>Connected</Text>
-                <Text style={{ color: '#334155', fontSize: 10, marginTop: 2 }}>oap:11800 · grpc active</Text>
               </View>
-            </View>
+            )}
           </View>
 
-          {/* Bottom version info */}
-          <View style={{
-            padding: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)',
-            flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-          }}>
-            <View>
-              <Text style={{ color: '#334155', fontSize: 10, letterSpacing: 1 }}>BUILD</Text>
-              <Text style={{ color: '#475569', fontSize: 11, fontWeight: '600' }}>v0.1.0-beta</Text>
-            </View>
+          {/* ── Bottom: User profile + version ── */}
+          <View>
+            {/* User profile card */}
             <View style={{
-              paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
-              backgroundColor: 'rgba(124,58,237,0.1)',
-              borderWidth: 1, borderColor: 'rgba(124,58,237,0.2)',
+              marginHorizontal: 12, marginBottom: 12,
+              backgroundColor: 'rgba(255,255,255,0.03)',
+              borderRadius: 12, padding: 14,
+              borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
             }}>
-              <Text style={{ color: '#8b5cf6', fontSize: 10, fontWeight: '700' }}>POC</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                {/* Avatar */}
+                <View style={{
+                  width: 34, height: 34, borderRadius: 10,
+                  backgroundColor: roleBadge.bg,
+                  borderWidth: 1, borderColor: roleBadge.border,
+                  alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <Text style={{ fontSize: 14, color: roleBadge.color }}>
+                    {user.role === 'ADMIN' ? '👑' : '👤'}
+                  </Text>
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ color: '#e2e8f0', fontSize: 12, fontWeight: '600' }} numberOfLines={1}>
+                    {user.name}
+                  </Text>
+                  <Text style={{ color: '#475569', fontSize: 10, marginTop: 1 }} numberOfLines={1}>
+                    {user.email}
+                  </Text>
+                </View>
+                <View style={{
+                  paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6,
+                  backgroundColor: roleBadge.bg,
+                  borderWidth: 1, borderColor: roleBadge.border,
+                }}>
+                  <Text style={{ color: roleBadge.color, fontSize: 9, fontWeight: '700' }}>
+                    {roleBadge.label}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Logout button */}
+              <Pressable
+                onPress={logout}
+                style={({ pressed }) => ({
+                  paddingVertical: 8, borderRadius: 8, alignItems: 'center',
+                  backgroundColor: pressed ? 'rgba(239,68,68,0.15)' : 'rgba(255,255,255,0.04)',
+                  borderWidth: 1, borderColor: pressed ? 'rgba(239,68,68,0.3)' : 'rgba(255,255,255,0.06)',
+                })}
+              >
+                <Text style={{ color: '#64748b', fontSize: 11, fontWeight: '600' }}>Sign Out</Text>
+              </Pressable>
+            </View>
+
+            {/* Version bar */}
+            <View style={{
+              padding: 16, paddingTop: 12,
+              borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.05)',
+              flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+            }}>
+              <View>
+                <Text style={{ color: '#334155', fontSize: 10, letterSpacing: 1 }}>BUILD</Text>
+                <Text style={{ color: '#475569', fontSize: 11, fontWeight: '600' }}>v0.1.0-beta</Text>
+              </View>
+              <View style={{
+                paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6,
+                backgroundColor: 'rgba(124,58,237,0.1)',
+                borderWidth: 1, borderColor: 'rgba(124,58,237,0.2)',
+              }}>
+                <Text style={{ color: '#8b5cf6', fontSize: 10, fontWeight: '700' }}>POC</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -170,7 +263,7 @@ export default function RootLayout() {
           <View style={{
             backgroundColor: 'rgba(10,10,26,0.98)',
             borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
-            paddingHorizontal: 20, paddingVertical: 16,
+            paddingHorizontal: 20, paddingVertical: 14,
             flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
           }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -185,9 +278,20 @@ export default function RootLayout() {
                 GEMS<Text style={{ color: '#8b5cf6' }}>.</Text>AIRAG
               </Text>
             </View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: '#4ade80' }} />
-              <Text style={{ color: '#4ade80', fontSize: 11, fontWeight: '600' }}>Live</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              {/* Role badge */}
+              <View style={{
+                paddingHorizontal: 7, paddingVertical: 3, borderRadius: 6,
+                backgroundColor: roleBadge.bg,
+              }}>
+                <Text style={{ color: roleBadge.color, fontSize: 9, fontWeight: '700' }}>
+                  {roleBadge.label}
+                </Text>
+              </View>
+              {/* Logout */}
+              <Pressable onPress={logout} style={{ padding: 4 }}>
+                <Text style={{ color: '#475569', fontSize: 16 }}>⏻</Text>
+              </Pressable>
             </View>
           </View>
         )}
