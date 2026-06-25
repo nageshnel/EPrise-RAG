@@ -1,0 +1,212 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =============================================
+   GEMS AIRAG - Premium Design System
+   Dark Space + AI Violet + Electric Blue
+   ============================================= */
+
+/* Web-only: Import Inter font */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+/* Global base styles for web */
+:root {
+  --bg-primary: #05050f;
+  --bg-secondary: #0a0a1a;
+  --bg-card: rgba(255,255,255,0.04);
+  --border-glass: rgba(255,255,255,0.08);
+  --violet-primary: #7c3aed;
+  --violet-accent: #8b5cf6;
+  --blue-accent: #3b82f6;
+  --neon-cyan: #22d3ee;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #475569;
+}
+
+* {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+html, body {
+  background-color: var(--bg-primary);
+  overflow-x: hidden;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.5); }
+
+/* ---- Aurora Mesh Background ---- */
+.aurora-bg {
+  background-color: #05050f;
+  background-image:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124,58,237,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(37,99,235,0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(6,182,212,0.04) 0%, transparent 70%);
+}
+
+/* ---- Glass Card ---- */
+.glass-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+}
+
+.glass-card-hover:hover {
+  background: rgba(255,255,255,0.07);
+  border-color: rgba(139,92,246,0.25);
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}
+
+/* ---- Gradient Button ---- */
+.btn-primary {
+  background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #2563eb 100%);
+  box-shadow: 0 0 20px rgba(124,58,237,0.35), 0 4px 15px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
+}
+.btn-primary:hover {
+  box-shadow: 0 0 30px rgba(124,58,237,0.55), 0 6px 20px rgba(0,0,0,0.4);
+  transform: translateY(-1px);
+}
+.btn-primary:active { transform: scale(0.98); }
+
+/* ---- Glow effects ---- */
+.glow-violet { box-shadow: 0 0 20px rgba(139,92,246,0.4); }
+.glow-blue { box-shadow: 0 0 20px rgba(59,130,246,0.4); }
+.glow-text-violet { text-shadow: 0 0 20px rgba(139,92,246,0.6); }
+
+/* ---- Sidebar gradient border ---- */
+.nav-active {
+  background: linear-gradient(90deg, rgba(124,58,237,0.15) 0%, transparent 100%);
+  border-left: 2px solid #7c3aed;
+}
+
+/* ---- Metric card glow ---- */
+.metric-violet { box-shadow: 0 0 30px rgba(124,58,237,0.15) inset; }
+.metric-blue { box-shadow: 0 0 30px rgba(37,99,235,0.15) inset; }
+.metric-cyan { box-shadow: 0 0 30px rgba(6,182,212,0.15) inset; }
+.metric-indigo { box-shadow: 0 0 30px rgba(99,102,241,0.15) inset; }
+
+/* ---- Chat bubbles ---- */
+.chat-user {
+  background: linear-gradient(135deg, rgba(124,58,237,0.2) 0%, rgba(37,99,235,0.15) 100%);
+  border: 1px solid rgba(124,58,237,0.3);
+}
+.chat-assistant {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ---- Pulse dot animation ---- */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.4); }
+  50% { opacity: 0.8; box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+}
+.pulse-dot { animation: pulse-glow 2s infinite; }
+
+/* ---- Typing indicator ---- */
+@keyframes typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+.typing-dot:nth-child(1) { animation: typing-dot 1.2s infinite 0s; }
+.typing-dot:nth-child(2) { animation: typing-dot 1.2s infinite 0.2s; }
+.typing-dot:nth-child(3) { animation: typing-dot 1.2s infinite 0.4s; }
+
+/* ---- Shimmer loader ---- */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ---- Score bar fill ---- */
+@keyframes fillBar {
+  from { width: 0%; }
+  to { width: var(--fill-width); }
+}
+.score-bar { animation: fillBar 0.8s ease-out forwards; }
+
+/* ---- Fade in up ---- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+
+/* ---- Status badge ---- */
+.badge-active {
+  background: rgba(34,197,94,0.12);
+  border: 1px solid rgba(34,197,94,0.25);
+  color: #4ade80;
+}
+.badge-processing {
+  background: rgba(251,191,36,0.12);
+  border: 1px solid rgba(251,191,36,0.25);
+  color: #fbbf24;
+}
+.badge-pending {
+  background: rgba(148,163,184,0.08);
+  border: 1px solid rgba(148,163,184,0.15);
+  color: #94a3b8;
+}
+.badge-error {
+  background: rgba(239,68,68,0.12);
+  border: 1px solid rgba(239,68,68,0.25);
+  color: #f87171;
+}
+
+/* ---- Input glow on focus ---- */
+.input-glass {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-glass:focus {
+  outline: none;
+  border-color: rgba(124,58,237,0.5);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.1);
+}
+
+/* ---- Progress ring ---- */
+.progress-ring {
+  transition: stroke-dashoffset 0.8s ease;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+/* ---- Monospace for code/IDs ---- */
+.mono { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+
+/* ---- Gradient text ---- */
+.gradient-text {
+  background: linear-gradient(135deg, #a78bfa 0%, #818cf8 50%, #60a5fa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ---- Upload zone ---- */
+.upload-zone {
+  border: 2px dashed rgba(124,58,237,0.3);
+  transition: all 0.3s ease;
+}
+.upload-zone:hover {
+  border-color: rgba(124,58,237,0.6);
+  background: rgba(124,58,237,0.05);
+}
+
+/* Sidebar width */
+.sidebar-width { width: 260px; min-width: 260px; }
