@@ -7,6 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
+import org.apache.skywalking.apm.toolkit.trace.ActiveSpan;
+import org.apache.skywalking.apm.toolkit.trace.Trace;
 
 @Service
 public class ChunkEventConsumer {
@@ -20,6 +22,7 @@ public class ChunkEventConsumer {
         this.repository = repository;
     }
 
+    @Trace
     @KafkaListener(topics = { Topics.DOCUMENT_CHUNK_CREATED,
             Topics.MEDIA_CHUNK_CREATED }, groupId = "gems-embedding-service")
     public void consume(ChunkCreatedEvent event) {
@@ -33,6 +36,14 @@ public class ChunkEventConsumer {
                     event.chunkId());
             return;
         }
-        repository.save(event, embeddingProvider.embed(content));
+
+        long start = System.currentTimeMillis();
+        float[] embedding = embeddingProvider.embed(content);
+        long duration = System.currentTimeMillis() - start;
+
+        ActiveSpan.tag("embedding.time_ms", String.valueOf(duration));
+        ActiveSpan.tag("chunks.processed", "1");
+
+        repository.save(event, embedding);
     }
 }
