@@ -309,6 +309,10 @@ spec:
               value: "skywalking-oap:11800"
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://postgres:5432/gems_ai
+            - name: SPRING_DATA_REDIS_HOST
+              value: "valkey"
+            - name: SPRING_DATA_REDIS_PORT
+              value: "6379"
           resources:
             requests:
               memory: "256Mi"

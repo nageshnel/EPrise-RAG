@@ -1,8 +1,14 @@
-﻿server:
+server:
   port: 8083
 spring:
   application:
     name: gems-retrieval-service
+  data:
+    redis:
+      host: ${SPRING_DATA_REDIS_HOST:localhost}
+      port: ${SPRING_DATA_REDIS_PORT:6379}
+  cache:
+    type: redis
   datasource:
     url: jdbc:postgresql://localhost:5432/gems_ai
     username: gems

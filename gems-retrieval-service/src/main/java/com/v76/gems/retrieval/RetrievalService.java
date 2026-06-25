@@ -1,6 +1,7 @@
 package com.v76.gems.retrieval;
 
 import com.v76.gems.common.config.RetrievalProperties;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,6 +16,7 @@ public class RetrievalService {
         this.repository = repository;
     }
 
+    @Cacheable(value = "retrieval", key = "#request.query() + ':' + (#request.topK() != null ? #request.topK() : 5)")
     public RetrieveResponse retrieve(RetrieveRequest request) {
         int topK = request.topK() == null ? properties.topK() : request.topK();
         return new RetrieveResponse(repository.search(embeddingClient.embed(request.query()), topK));
