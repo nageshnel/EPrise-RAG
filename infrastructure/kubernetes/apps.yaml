@@ -14,6 +14,13 @@ spec:
         app: gems-api-gateway
     spec:
       serviceAccountName: airag-discovery
+      initContainers:
+        - name: sw-agent-sidecar
+          image: apache/skywalking-java-agent:8.15.0-java17
+          command: ["sh", "-c", "mkdir -p /skywalking/agent && cp -r /skywalking/agent/* /skywalking/agent/"]
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
       containers:
         - name: app
           image: airag/gems-api-gateway:0.1.0
@@ -23,6 +30,12 @@ spec:
             - secretRef:
                 name: airag-model-api-secrets
           env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: "gems-api-gateway"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "skywalking-oap:11800"
             - name: SPRING_R2DBC_URL
               value: r2dbc:postgresql://postgres:5432/gems_ai
             - name: SPRING_R2DBC_USERNAME
@@ -36,6 +49,12 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
+      volumes:
+        - name: sw-agent-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -66,12 +85,25 @@ spec:
         app: gems-ai-etl-service
     spec:
       serviceAccountName: airag-discovery
+      initContainers:
+        - name: sw-agent-sidecar
+          image: apache/skywalking-java-agent:8.15.0-java17
+          command: ["sh", "-c", "mkdir -p /skywalking/agent && cp -r /skywalking/agent/* /skywalking/agent/"]
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
       containers:
         - name: app
           image: airag/gems-ai-etl-service:0.1.0
           ports:
             - containerPort: 8081
           env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: "gems-ai-etl-service"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "skywalking-oap:11800"
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
               value: kafka:9092
           resources:
@@ -81,6 +113,12 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
+      volumes:
+        - name: sw-agent-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -110,12 +148,25 @@ spec:
         app: gems-media-service
     spec:
       serviceAccountName: airag-discovery
+      initContainers:
+        - name: sw-agent-sidecar
+          image: apache/skywalking-java-agent:8.15.0-java17
+          command: ["sh", "-c", "mkdir -p /skywalking/agent && cp -r /skywalking/agent/* /skywalking/agent/"]
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
       containers:
         - name: app
           image: airag/gems-media-service:0.1.0
           ports:
             - containerPort: 8085
           env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: "gems-media-service"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "skywalking-oap:11800"
             - name: SERVICES_WHISPER_URL
               value: http://whisper-service:8090
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
@@ -127,6 +178,12 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
+      volumes:
+        - name: sw-agent-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -156,6 +213,13 @@ spec:
         app: gems-embedding-service
     spec:
       serviceAccountName: airag-discovery
+      initContainers:
+        - name: sw-agent-sidecar
+          image: apache/skywalking-java-agent:8.15.0-java17
+          command: ["sh", "-c", "mkdir -p /skywalking/agent && cp -r /skywalking/agent/* /skywalking/agent/"]
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
       containers:
         - name: app
           image: airag/gems-embedding-service:0.1.0
@@ -167,6 +231,12 @@ spec:
             - configMapRef:
                 name: airag-model-api-config
           env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: "gems-embedding-service"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "skywalking-oap:11800"
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://postgres:5432/gems_ai
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
@@ -178,6 +248,12 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
+      volumes:
+        - name: sw-agent-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -207,6 +283,13 @@ spec:
         app: gems-retrieval-service
     spec:
       serviceAccountName: airag-discovery
+      initContainers:
+        - name: sw-agent-sidecar
+          image: apache/skywalking-java-agent:8.15.0-java17
+          command: ["sh", "-c", "mkdir -p /skywalking/agent && cp -r /skywalking/agent/* /skywalking/agent/"]
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
       containers:
         - name: app
           image: airag/gems-retrieval-service:0.1.0
@@ -218,6 +301,12 @@ spec:
             - configMapRef:
                 name: airag-model-api-config
           env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: "gems-retrieval-service"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "skywalking-oap:11800"
             - name: SPRING_DATASOURCE_URL
               value: jdbc:postgresql://postgres:5432/gems_ai
           resources:
@@ -227,6 +316,12 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
+      volumes:
+        - name: sw-agent-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -256,6 +351,13 @@ spec:
         app: gems-rag-orchestrator-service
     spec:
       serviceAccountName: airag-discovery
+      initContainers:
+        - name: sw-agent-sidecar
+          image: apache/skywalking-java-agent:8.15.0-java17
+          command: ["sh", "-c", "mkdir -p /skywalking/agent && cp -r /skywalking/agent/* /skywalking/agent/"]
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
       containers:
         - name: app
           image: airag/gems-rag-orchestrator-service:0.1.0
@@ -266,6 +368,13 @@ spec:
                 name: airag-model-api-secrets
             - configMapRef:
                 name: airag-model-api-config
+          env:
+            - name: JAVA_TOOL_OPTIONS
+              value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
+            - name: SW_AGENT_NAME
+              value: "gems-rag-orchestrator-service"
+            - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
+              value: "skywalking-oap:11800"
           resources:
             requests:
               memory: "256Mi"
@@ -273,6 +382,12 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          volumeMounts:
+            - name: sw-agent-volume
+              mountPath: /skywalking/agent
+      volumes:
+        - name: sw-agent-volume
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
