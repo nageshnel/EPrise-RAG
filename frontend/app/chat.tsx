@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Text, View, ScrollView, TextInput, Pressable, ActivityIndicator, Platform } from 'react-native';
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore, useThemeColors } from '../stores/themeStore';
+import { xhr_sse_stream, SseEventType } from '../utils/stream';
 
 interface Message {
   id: string;
@@ -20,10 +21,10 @@ interface SuggestedPrompt {
 }
 
 const SUGGESTED_PROMPTS: SuggestedPrompt[] = [
-  { icon: '🔐', label: 'Security Policy',   text: 'What are the MFA requirements for admin users?' },
-  { icon: '📋', label: 'Compliance',        text: 'Summarize the TLS encryption standards in our policies.' },
-  { icon: '⚡', label: 'Performance',       text: 'What are the SLA thresholds for the API gateway?' },
-  { icon: '📊', label: 'Earnings Report',   text: 'Highlight key financial metrics from Q3 earnings.' },
+  { icon: '🔐', label: 'Security Policy', text: 'What are the MFA requirements for admin users?' },
+  { icon: '📋', label: 'Compliance', text: 'Summarize the TLS encryption standards in our policies.' },
+  { icon: '⚡', label: 'Performance', text: 'What are the SLA thresholds for the API gateway?' },
+  { icon: '📊', label: 'Earnings Report', text: 'Highlight key financial metrics from Q3 earnings.' },
 ];
 
 function TypingIndicator() {
@@ -66,10 +67,10 @@ function CitationChip({ source, index }: { source: string; index: number }) {
 
 interface ModelOption { id: string; label: string; badge: string; }
 const MODELS: ModelOption[] = [
-  { id: 'gpt-4o',      label: 'GPT-4o',        badge: 'OpenAI'      },
-  { id: 'gpt-4o-mini', label: 'GPT-4o Mini',   badge: 'OpenAI'      },
+  { id: 'gpt-4o', label: 'GPT-4o', badge: 'OpenAI' },
+  { id: 'gpt-4o-mini', label: 'GPT-4o Mini', badge: 'OpenAI' },
   { id: 'llama-3-70b', label: 'Llama 3 · 70B', badge: 'Self-Hosted' },
-  { id: 'mistral-7b',  label: 'Mistral 7B',    badge: 'Self-Hosted' },
+  { id: 'mistral-7b', label: 'Mistral 7B', badge: 'Self-Hosted' },
 ];
 
 export default function ChatPlayground() {
@@ -111,13 +112,9 @@ export default function ChatPlayground() {
       id: assistantId,
       sender: 'ASSISTANT',
       text: '',
-      citations: [
-        'corporate_security_policy.pdf:L12-L28',
-        'infrastructure/kubernetes/secrets.yaml:L4-L19',
-        'q3_earnings_report.docx:L44',
-      ],
-      latency: Math.floor(Math.random() * 400) + 700,
-      tokens: Math.floor(Math.random() * 300) + 200,
+      citations: [],
+      latency: 0,
+      tokens: 0,
       isStreaming: true,
     };
 
@@ -125,26 +122,55 @@ export default function ChatPlayground() {
     setInputText('');
     setIsGenerating(true);
 
-    const fullResponse = `Based on the retrieved context from your corporate security documentation, the policy mandates:\n\n**1. MFA Enforcement**: All admin and privileged users must use hardware-backed TOTP or FIDO2 keys. Software authenticators are permitted for standard users.\n\n**2. API Key Rotation**: All service API keys, including OpenAI tokens and gateway secrets, must be rotated every 90 days via the secrets management pipeline.\n\n**3. TLS Standards**: All intra-cluster service communication must use TLS 1.3. External-facing endpoints enforce TLS 1.2 as the minimum.`;
+    const abortController = new AbortController();
+    const startTime = Date.now();
 
-    let idx = 0;
-    const chars = fullResponse.split('');
-
-    const streamTimer = setInterval(() => {
-      if (idx < chars.length) {
-        const partial = chars.slice(0, idx + 3).join('');
-        setMessages(prev => prev.map(m =>
-          m.id === assistantId ? { ...m, text: partial, isStreaming: true } : m
-        ));
-        idx += 3;
-      } else {
-        clearInterval(streamTimer);
-        setMessages(prev => prev.map(m =>
-          m.id === assistantId ? { ...m, text: fullResponse, isStreaming: false } : m
-        ));
-        setIsGenerating(false);
+    xhr_sse_stream(
+      '/chat/stream',
+      { question: query },
+      abortController.signal,
+      (eventType: SseEventType, data: any) => {
+        if (eventType === 'sources') {
+          // Map sources array
+          const rawSources = Array.isArray(data) ? data : [];
+          const formatted = rawSources.map(c => {
+            const filename = c.metadata?.filename || c.metadata?.name || c.sourceType || 'doc';
+            const range = c.metadata?.range || `seq:${c.sequence}`;
+            return `${filename}:${range}`;
+          });
+          setMessages(prev => prev.map(m =>
+            m.id === assistantId ? { ...m, citations: formatted } : m
+          ));
+        } else if (eventType === 'content') {
+          // Append text chunk token
+          setMessages(prev => prev.map(m =>
+            m.id === assistantId ? { ...m, text: m.text + (data as string) } : m
+          ));
+        } else if (eventType === 'done') {
+          const latency = Date.now() - startTime;
+          // Approximate tokens count based on characters (e.g. 4 chars per token)
+          setMessages(prev => prev.map(m =>
+            m.id === assistantId ? {
+              ...m,
+              isStreaming: false,
+              latency: latency,
+              tokens: Math.round(m.text.length / 4) + 10,
+            } : m
+          ));
+          setIsGenerating(false);
+        }
       }
-    }, 20);
+    ).catch(err => {
+      console.error('SSE Stream error', err);
+      setMessages(prev => prev.map(m =>
+        m.id === assistantId ? {
+          ...m,
+          text: m.text + '\n\n[Connection Error: Failed to receive stream from backend. Please verify that the services are online.]',
+          isStreaming: false,
+        } : m
+      ));
+      setIsGenerating(false);
+    });
   };
 
   const selectedModelObj = MODELS.find(m => m.id === selectedModel) ?? MODELS[0];
@@ -262,8 +288,8 @@ export default function ChatPlayground() {
                   <TypingIndicator />
                 ) : (
                   <Text style={{
-                    color: msg.sender === 'USER' 
-                      ? (mode === 'dark' ? '#ddd6fe' : '#1e3a8a') 
+                    color: msg.sender === 'USER'
+                      ? (mode === 'dark' ? '#ddd6fe' : '#1e3a8a')
                       : theme.text.primary,
                     fontSize: 13, lineHeight: 21,
                   }}>
@@ -279,7 +305,7 @@ export default function ChatPlayground() {
                 )}
 
                 {/* Footer row */}
-                {!msg.isStreaming && msg.citations && (
+                {!msg.isStreaming && msg.citations && msg.citations.length > 0 && (
                   <View>
                     <View style={{
                       height: 1, backgroundColor: theme.border.default,
@@ -293,12 +319,12 @@ export default function ChatPlayground() {
                     </View>
                     {/* Stats */}
                     <View style={{ flexDirection: 'row', gap: 16 }}>
-                      {msg.latency && (
+                      {msg.latency && msg.latency > 0 && (
                         <Text style={{ color: theme.text.muted, fontSize: 10, fontFamily: 'monospace' }}>
                           ⏱ {msg.latency}ms
                         </Text>
                       )}
-                      {msg.tokens && (
+                      {msg.tokens && msg.tokens > 0 && (
                         <Text style={{ color: theme.text.muted, fontSize: 10, fontFamily: 'monospace' }}>
                           🪙 {msg.tokens} tokens
                         </Text>
@@ -404,25 +430,25 @@ export default function ChatPlayground() {
                   borderColor: selectedModel === m.id ? (mode === 'dark' ? 'rgba(124,58,237,0.35)' : 'rgba(59,130,246,0.35)') : theme.border.default,
                 }}
               >
-                <Text style={{ 
-                  color: selectedModel === m.id 
-                    ? (mode === 'dark' ? '#c4b5fd' : '#1e40af') 
-                    : theme.text.secondary, 
-                  fontSize: 12, fontWeight: '500' 
+                <Text style={{
+                  color: selectedModel === m.id
+                    ? (mode === 'dark' ? '#c4b5fd' : '#1e40af')
+                    : theme.text.secondary,
+                  fontSize: 12, fontWeight: '500'
                 }}>
                   {m.label}
                 </Text>
                 <View style={{
                   paddingHorizontal: 6, paddingVertical: 2, borderRadius: 6,
-                  backgroundColor: selectedModel === m.id 
-                    ? (mode === 'dark' ? 'rgba(124,58,237,0.2)' : 'rgba(59,130,246,0.15)') 
+                  backgroundColor: selectedModel === m.id
+                    ? (mode === 'dark' ? 'rgba(124,58,237,0.2)' : 'rgba(59,130,246,0.15)')
                     : (mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)'),
                 }}>
-                  <Text style={{ 
-                    color: selectedModel === m.id 
-                      ? theme.accent.primary 
-                      : theme.text.muted, 
-                    fontSize: 9, fontWeight: '600' 
+                  <Text style={{
+                    color: selectedModel === m.id
+                      ? theme.accent.primary
+                      : theme.text.muted,
+                    fontSize: 9, fontWeight: '600'
                   }}>
                     {m.badge}
                   </Text>
@@ -446,20 +472,20 @@ export default function ChatPlayground() {
                   onPress={() => setTemperature(t)}
                   style={{
                     flex: 1, paddingVertical: 6, borderRadius: 8, alignItems: 'center',
-                    backgroundColor: temperature === t 
-                      ? (mode === 'dark' ? 'rgba(124,58,237,0.2)' : 'rgba(59,130,246,0.15)') 
+                    backgroundColor: temperature === t
+                      ? (mode === 'dark' ? 'rgba(124,58,237,0.2)' : 'rgba(59,130,246,0.15)')
                       : (mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
                     borderWidth: 1,
-                    borderColor: temperature === t 
-                      ? (mode === 'dark' ? 'rgba(124,58,237,0.4)' : 'rgba(59,130,246,0.35)') 
+                    borderColor: temperature === t
+                      ? (mode === 'dark' ? 'rgba(124,58,237,0.4)' : 'rgba(59,130,246,0.35)')
                       : theme.border.default,
                   }}
                 >
-                  <Text style={{ 
-                    color: temperature === t 
-                      ? (mode === 'dark' ? '#c4b5fd' : '#1e40af') 
-                      : theme.text.secondary, 
-                    fontSize: 10, fontWeight: '600' 
+                  <Text style={{
+                    color: temperature === t
+                      ? (mode === 'dark' ? '#c4b5fd' : '#1e40af')
+                      : theme.text.secondary,
+                    fontSize: 10, fontWeight: '600'
                   }}>
                     {t.toFixed(1)}
                   </Text>
@@ -485,20 +511,20 @@ export default function ChatPlayground() {
                   onPress={() => setTopK(k)}
                   style={{
                     flex: 1, paddingVertical: 6, borderRadius: 8, alignItems: 'center',
-                    backgroundColor: topK === k 
-                      ? (mode === 'dark' ? 'rgba(37,99,235,0.2)' : 'rgba(59,130,246,0.15)') 
+                    backgroundColor: topK === k
+                      ? (mode === 'dark' ? 'rgba(37,99,235,0.2)' : 'rgba(59,130,246,0.15)')
                       : (mode === 'dark' ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'),
                     borderWidth: 1,
-                    borderColor: topK === k 
-                      ? (mode === 'dark' ? 'rgba(37,99,235,0.4)' : 'rgba(59,130,246,0.35)') 
+                    borderColor: topK === k
+                      ? (mode === 'dark' ? 'rgba(37,99,235,0.4)' : 'rgba(59,130,246,0.35)')
                       : theme.border.default,
                   }}
                 >
-                  <Text style={{ 
-                    color: topK === k 
-                      ? (mode === 'dark' ? '#93c5fd' : '#1e40af') 
-                      : theme.text.secondary, 
-                    fontSize: 10, fontWeight: '600' 
+                  <Text style={{
+                    color: topK === k
+                      ? (mode === 'dark' ? '#93c5fd' : '#1e40af')
+                      : theme.text.secondary,
+                    fontSize: 10, fontWeight: '600'
                   }}>{k}</Text>
                 </Pressable>
               ))}
@@ -532,10 +558,10 @@ export default function ChatPlayground() {
             SESSION STATS
           </Text>
           {[
-            { label: 'Messages',       value: String(messages.length)  },
-            { label: 'Avg Latency',    value: '823ms'                  },
-            { label: 'Total Tokens',   value: '1,240'                  },
-            { label: 'Citations Used', value: '6'                      },
+            { label: 'Messages', value: String(messages.length) },
+            { label: 'Avg Latency', value: '823ms' },
+            { label: 'Total Tokens', value: '1,240' },
+            { label: 'Citations Used', value: '6' },
           ].map((s, i) => (
             <View key={i} style={{
               flexDirection: 'row', justifyContent: 'space-between',

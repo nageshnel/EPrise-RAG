@@ -14,6 +14,10 @@ public class TextGenerationClient {
         this.chatModel = chatModel;
     }
 
+    public reactor.core.publisher.Flux<org.springframework.ai.chat.model.ChatResponse> stream(String promptText) {
+        return chatModel.stream(new org.springframework.ai.chat.prompt.Prompt(promptText));
+    }
+
     public String complete(String promptText) {
         long startTime = System.currentTimeMillis();
         ChatResponse response = chatModel.call(new Prompt(promptText));

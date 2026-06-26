@@ -1,4 +1,6 @@
 import { create } from 'zustand';
+import { decodeJwt } from '../utils/jwt';
+import { getGatewayUrl } from '../utils/api';
 
 export type UserRole = 'ADMIN' | 'USER';
 
@@ -26,57 +28,6 @@ interface AuthState {
   restoreSession: () => void;
 }
 
-/**
- * Mock user database.
- * In production this would call the API Gateway's /auth/login endpoint.
- */
-const MOCK_USERS: Record<string, { password: string; user: AuthUser }> = {
-  'admin@gems.ai': {
-    password: 'admin123',
-    user: {
-      id: 'usr_admin_001',
-      name: 'System Administrator',
-      email: 'admin@gems.ai',
-      role: 'ADMIN',
-    },
-  },
-  'user@gems.ai': {
-    password: 'user123',
-    user: {
-      id: 'usr_user_001',
-      name: 'Alex Johnson',
-      email: 'user@gems.ai',
-      role: 'USER',
-    },
-  },
-};
-
-function saveSession(user: AuthUser) {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem('gems_auth_session', JSON.stringify(user));
-    }
-  } catch { /* SSR / RN native guard */ }
-}
-
-function clearSession() {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.removeItem('gems_auth_session');
-    }
-  } catch { /* SSR / RN native guard */ }
-}
-
-function loadSession(): AuthUser | null {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const raw = window.localStorage.getItem('gems_auth_session');
-      if (raw) return JSON.parse(raw) as AuthUser;
-    }
-  } catch { /* ignore parse errors */ }
-  return null;
-}
-
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   isLoading: false,
@@ -85,29 +36,78 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email: string, password: string) => {
     set({ isLoading: true, error: null });
 
-    // Simulate network delay (replace with real API call)
-    await new Promise((r) => setTimeout(r, 1200));
+    try {
+      const gatewayUrl = getGatewayUrl();
+      const res = await fetch(`${gatewayUrl}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: email, password }),
+      });
 
-    const entry = MOCK_USERS[email.toLowerCase().trim()];
-    if (!entry || entry.password !== password) {
-      set({ isLoading: false, error: 'Invalid email or password. Please try again.' });
+      if (!res.ok) {
+        let msg = 'Invalid credentials';
+        if (res.status === 401) {
+          msg = 'Invalid email or password. Please try again.';
+        } else {
+          try {
+            const errBody = await res.json();
+            if (errBody && errBody.message) msg = errBody.message;
+          } catch { /* ignore parse error */ }
+        }
+        set({ isLoading: false, error: msg });
+        return false;
+      }
+
+      const data = await res.json(); // returns { token, expiresInMs }
+      const decoded = decodeJwt(data.token);
+      if (!decoded) {
+        set({ isLoading: false, error: 'Malformed authentication token received.' });
+        return false;
+      }
+
+      const role = decoded.role || 'USER';
+      const user: AuthUser = {
+        id: decoded.sub || email,
+        name: decoded.sub ? decoded.sub.split('@')[0] : 'User',
+        email: decoded.sub || email,
+        role: role as UserRole,
+      };
+
+      try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+          window.localStorage.setItem('gems_auth_token', data.token);
+          window.localStorage.setItem('gems_auth_session', JSON.stringify(user));
+        }
+      } catch { /* ignore */ }
+
+      set({ user, isLoading: false, error: null });
+      return true;
+    } catch (e) {
+      set({ isLoading: false, error: 'Connection error. Please verify the gateway server is running.' });
       return false;
     }
-
-    saveSession(entry.user);
-    set({ user: entry.user, isLoading: false, error: null });
-    return true;
   },
 
   logout: () => {
-    clearSession();
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('gems_auth_token');
+        window.localStorage.removeItem('gems_auth_session');
+      }
+    } catch { /* ignore */ }
     set({ user: null, error: null });
   },
 
   restoreSession: () => {
-    const saved = loadSession();
-    if (saved) {
-      set({ user: saved });
-    }
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const token = window.localStorage.getItem('gems_auth_token');
+        const session = window.localStorage.getItem('gems_auth_session');
+        if (token && session) {
+          const user = JSON.parse(session) as AuthUser;
+          set({ user });
+        }
+      }
+    } catch { /* ignore */ }
   },
 }));

@@ -19,4 +19,9 @@ public class ChatController {
     public ChatResponse chat(@RequestBody @NonNull ChatRequest request) {
         return chatService.chat(request);
     }
+
+    @PostMapping(value = "/stream", produces = org.springframework.http.MediaType.TEXT_EVENT_STREAM_VALUE)
+    public reactor.core.publisher.Flux<org.springframework.http.codec.ServerSentEvent<String>> streamChat(@RequestBody @NonNull ChatRequest request) {
+        return chatService.streamChat(request);
+    }
 }

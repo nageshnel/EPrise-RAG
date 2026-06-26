@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Text, View, ScrollView, TextInput, Pressable, ActivityIndicator, Alert, Platform } from 'react-native';
+import { Text, View, ScrollView, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
 import { useThemeStore, useThemeColors } from '../stores/themeStore';
 import { authFetch } from '../utils/api';
@@ -67,10 +67,10 @@ export default function DocumentCenter() {
   const theme = useThemeColors();
 
   const [documents, setDocuments] = useState<KBDocument[]>([
-    { id: '1', name: 'corporate_security_policy.pdf',   type: 'PDF',  size: '2.4 MB',  status: 'EMBEDDED',    chunks: 14, embeddingTime: '1.8s', uploadedAt: '2h ago' },
-    { id: '2', name: 'q3_earnings_report.docx',         type: 'DOCX', size: '1.1 MB',  status: 'EMBEDDED',    chunks: 8,  embeddingTime: '0.9s', uploadedAt: '35m ago' },
-    { id: '3', name: 'whisper_api_integration.md',      type: 'MD',   size: '340 KB',  status: 'EMBEDDED',    chunks: 4,  embeddingTime: '0.4s', uploadedAt: '12m ago' },
-    { id: '4', name: 'kubernetes_cluster_config.yaml',  type: 'YAML', size: '88 KB',   status: 'EMBEDDED',    chunks: 5,  embeddingTime: '0.6s', uploadedAt: '1d ago' },
+    { id: '1', name: 'corporate_security_policy.pdf', type: 'PDF', size: '2.4 MB', status: 'EMBEDDED', chunks: 14, embeddingTime: '1.8s', uploadedAt: '2h ago' },
+    { id: '2', name: 'q3_earnings_report.docx', type: 'DOCX', size: '1.1 MB', status: 'EMBEDDED', chunks: 8, embeddingTime: '0.9s', uploadedAt: '35m ago' },
+    { id: '3', name: 'whisper_api_integration.md', type: 'MD', size: '340 KB', status: 'EMBEDDED', chunks: 4, embeddingTime: '0.4s', uploadedAt: '12m ago' },
+    { id: '4', name: 'kubernetes_cluster_config.yaml', type: 'YAML', size: '88 KB', status: 'EMBEDDED', chunks: 5, embeddingTime: '0.6s', uploadedAt: '1d ago' },
   ]);
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,10 +80,10 @@ export default function DocumentCenter() {
   const [isUploading, setIsUploading] = useState(false);
 
   const statusConfig: Record<DocStatus, { label: string; color: string; bg: string; icon: string }> = {
-    PENDING:    { label: 'Pending',    color: theme.text.secondary, bg: mode === 'dark' ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.1)', icon: '○'  },
-    PROCESSING: { label: 'Processing', color: mode === 'dark' ? '#fbbf24' : '#d97706', bg: mode === 'dark' ? 'rgba(251,191,36,0.1)' : 'rgba(217,119,6,0.1)',  icon: '◎'  },
-    EMBEDDED:   { label: 'Embedded',   color: mode === 'dark' ? '#4ade80' : '#10b981', bg: mode === 'dark' ? 'rgba(74,222,128,0.1)' : 'rgba(16,185,129,0.1)',  icon: '✓'  },
-    FAILED:     { label: 'Failed',     color: theme.accent.error, bg: mode === 'dark' ? 'rgba(248,113,113,0.1)' : 'rgba(239,68,68,0.08)', icon: '✕'  },
+    PENDING: { label: 'Pending', color: theme.text.secondary, bg: mode === 'dark' ? 'rgba(148,163,184,0.08)' : 'rgba(148,163,184,0.1)', icon: '○' },
+    PROCESSING: { label: 'Processing', color: mode === 'dark' ? '#fbbf24' : '#d97706', bg: mode === 'dark' ? 'rgba(251,191,36,0.1)' : 'rgba(217,119,6,0.1)', icon: '◎' },
+    EMBEDDED: { label: 'Embedded', color: mode === 'dark' ? '#4ade80' : '#10b981', bg: mode === 'dark' ? 'rgba(74,222,128,0.1)' : 'rgba(16,185,129,0.1)', icon: '✓' },
+    FAILED: { label: 'Failed', color: theme.accent.error, bg: mode === 'dark' ? 'rgba(248,113,113,0.1)' : 'rgba(239,68,68,0.08)', icon: '✕' },
   };
 
   const handlePickDocument = async () => {
@@ -179,7 +179,7 @@ export default function DocumentCenter() {
   };
 
   const embeddedCount = documents.filter(d => d.status === 'EMBEDDED').length;
-  const totalChunks   = documents.reduce((a, d) => a + d.chunks, 0);
+  const totalChunks = documents.reduce((a, d) => a + d.chunks, 0);
   const processingCount = documents.filter(d => d.status === 'PROCESSING').length;
 
   return (
@@ -208,8 +208,8 @@ export default function DocumentCenter() {
           <View style={{ flexDirection: 'row', gap: 16 }}>
             {[
               { label: 'Embedded', value: embeddedCount, color: mode === 'dark' ? '#4ade80' : '#10b981' },
-              { label: 'Chunks',   value: totalChunks,   color: theme.accent.primary },
-              { label: 'Active',   value: processingCount, color: mode === 'dark' ? '#fbbf24' : '#d97706' },
+              { label: 'Chunks', value: totalChunks, color: theme.accent.primary },
+              { label: 'Active', value: processingCount, color: mode === 'dark' ? '#fbbf24' : '#d97706' },
             ].map((s, i) => (
               <View key={i} style={{ alignItems: 'center' }}>
                 <Text style={{ fontSize: 22, fontWeight: '800', color: s.color }}>{s.value}</Text>
@@ -279,7 +279,7 @@ export default function DocumentCenter() {
         }}>
           {([
             { key: 'documents', label: '📁  Documents', count: documents.length },
-            { key: 'search',    label: '🔍  Vector Search', count: searchResults.length },
+            { key: 'search', label: '🔍  Vector Search', count: searchResults.length },
           ] as const).map(tab => (
             <Pressable
               key={tab.key}
@@ -297,14 +297,14 @@ export default function DocumentCenter() {
               {tab.count > 0 && (
                 <View style={{
                   width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: activeTab === tab.key 
-                    ? (mode === 'dark' ? 'rgba(124,58,237,0.3)' : 'rgba(59,130,246,0.2)') 
+                  backgroundColor: activeTab === tab.key
+                    ? (mode === 'dark' ? 'rgba(124,58,237,0.3)' : 'rgba(59,130,246,0.2)')
                     : theme.border.default,
                 }}>
-                  <Text style={{ 
-                    fontSize: 9, 
-                    color: activeTab === tab.key ? theme.accent.primary : theme.text.muted, 
-                    fontWeight: '700' 
+                  <Text style={{
+                    fontSize: 9,
+                    color: activeTab === tab.key ? theme.accent.primary : theme.text.muted,
+                    fontWeight: '700'
                   }}>
                     {tab.count}
                   </Text>
@@ -372,10 +372,10 @@ export default function DocumentCenter() {
                   {/* Size */}
                   <Text style={{ flex: 1, color: theme.text.secondary, fontSize: 11, fontFamily: 'monospace' }}>{doc.size}</Text>
                   {/* Chunks */}
-                  <Text style={{ 
-                    flex: 1, 
-                    color: doc.chunks > 0 ? theme.accent.primary : theme.text.muted, 
-                    fontSize: 12, fontWeight: '600', fontFamily: 'monospace' 
+                  <Text style={{
+                    flex: 1,
+                    color: doc.chunks > 0 ? theme.accent.primary : theme.text.muted,
+                    fontSize: 12, fontWeight: '600', fontFamily: 'monospace'
                   }}>
                     {doc.chunks > 0 ? doc.chunks : '—'}
                   </Text>
