@@ -40,14 +40,14 @@ class WhisperClientTest {
         when(builder.baseUrl(anyString())).thenReturn(builder);
         when(builder.build()).thenReturn(webClient);
 
-        whisperClient = new WhisperClient(builder, "http://whisper:9000");
+        whisperClient = new WhisperClient(builder, "http://whisper:9000", "test-key");
 
         // Wire up the WebClient call chain
         when(webClient.post()).thenReturn(requestBodyUriSpec);
         when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(any())).thenReturn(requestBodySpec);
-        // body() returns RequestHeadersSpec<?> — use doReturn to bypass generic type check
-        doReturn(requestHeadersSpec).when(requestBodySpec).body(any());
+        when(requestBodySpec.header(anyString(), any())).thenReturn(requestBodySpec);
+        when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
     }
 

@@ -17,27 +17,46 @@ import java.util.Objects;
 public class WhisperClient {
     private final WebClient webClient;
 
+    private final String apiKey;
+
     public WhisperClient(@NonNull WebClient.Builder builder,
-            @Value("${services.whisper.url}") @NonNull String whisperUrl) {
+            @Value("${services.whisper.url}") @NonNull String whisperUrl,
+            @Value("${services.whisper.api-key:}") String apiKey) {
         Objects.requireNonNull(builder);
         Objects.requireNonNull(whisperUrl);
         this.webClient = builder.baseUrl(whisperUrl).build();
+        this.apiKey = apiKey;
     }
 
     public String transcribe(@NonNull MultipartFile file) throws IOException {
         Objects.requireNonNull(file);
-        ByteArrayResource resource = new ByteArrayResource(file.getBytes()) {
-            @Override
-            public String getFilename() {
-                return file.getOriginalFilename();
-            }
-        };
-        LinkedMultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", resource);
-        WhisperTranscriptResponse response = webClient.post()
-                .uri("/transcribe")
-                .contentType(java.util.Objects.requireNonNull(MediaType.MULTIPART_FORM_DATA))
-                .body(BodyInserters.fromMultipartData(body))
+
+        String base64Data = java.util.Base64.getEncoder().encodeToString(file.getBytes());
+        String originalFilename = file.getOriginalFilename();
+        String format = "wav"; // fallback
+        if (originalFilename != null && originalFilename.contains(".")) {
+            format = originalFilename.substring(originalFilename.lastIndexOf(".") + 1).toLowerCase();
+        }
+
+        java.util.Map<String, Object> inputAudio = java.util.Map.of(
+            "data", base64Data,
+            "format", format
+        );
+        java.util.Map<String, Object> requestBody = java.util.Map.of(
+            "model", "openai/whisper-large-v3-turbo",
+            "input_audio", inputAudio
+        );
+
+        var requestSpec = webClient.post()
+                .uri("/audio/transcriptions")
+                .contentType(MediaType.APPLICATION_JSON);
+
+        if (apiKey != null && !apiKey.isBlank()) {
+            requestSpec = requestSpec.header("Authorization", "Bearer " + apiKey);
+        }
+
+        WhisperTranscriptResponse response = requestSpec
+                .bodyValue(requestBody)
                 .retrieve()
                 .bodyToMono(WhisperTranscriptResponse.class)
                 .block();

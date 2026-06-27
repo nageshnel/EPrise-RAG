@@ -40,14 +40,14 @@ services:
     volumes:
       - minio-data:/data
 
-  whisper-service:
-    image: onerahmet/openai-whisper-asr-webservice:latest
-    container_name: airag-whisper
-    environment:
-      ASR_MODEL: base
-      ASR_ENGINE: openai_whisper
-    ports:
-      - "8090:9000"
+  # whisper-service:
+  #   image: onerahmet/openai-whisper-asr-webservice:latest
+  #   container_name: airag-whisper
+  #   environment:
+  #     ASR_MODEL: base
+  #     ASR_ENGINE: openai_whisper
+  #   ports:
+  #     - "8090:9000"
 
   jaeger:
     image: jaegertracing/all-in-one:1.57

@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 8085
 spring:
   application:
@@ -10,7 +10,8 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 services:
   whisper:
-    url: http://localhost:8090
+    url: ${WHISPER_URL:https://openrouter.ai/api/v1}
+    api-key: ${OPENAI_API_KEY:}
 ai:
   chunking:
     strategy: paragraph
