@@ -6,10 +6,10 @@ spring:
   ai:
     openai:
       api-key: ${OPENAI_API_KEY:}
-      base-url: ${OPENAI_BASE_URL:https://api.openai.com}
+      base-url: ${OPENAI_BASE_URL:https://openrouter.ai/api/v1}
       chat:
         options:
-          model: ${SPRING_AI_CHAT_MODEL:gpt-4o-mini}
+          model: ${SPRING_AI_CHAT_MODEL:qwen/qwen-3-vl-235b-instruct}
   cloud:
     kubernetes:
       discovery:

@@ -67,6 +67,7 @@ function CitationChip({ source, index }: { source: string; index: number }) {
 
 interface ModelOption { id: string; label: string; badge: string; }
 const MODELS: ModelOption[] = [
+  { id: 'qwen-3-vl-235b', label: 'Qwen3-VL-235B', badge: 'OpenRouter' },
   { id: 'gpt-4o', label: 'GPT-4o', badge: 'OpenAI' },
   { id: 'gpt-4o-mini', label: 'GPT-4o Mini', badge: 'OpenAI' },
   { id: 'llama-3-70b', label: 'Llama 3 · 70B', badge: 'Self-Hosted' },
@@ -92,7 +93,7 @@ export default function ChatPlayground() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [temperature, setTemperature] = useState(0.7);
   const [topK, setTopK] = useState(5);
-  const [selectedModel, setSelectedModel] = useState('gpt-4o-mini');
+  const [selectedModel, setSelectedModel] = useState('qwen-3-vl-235b');
   const [systemPrompt, setSystemPrompt] = useState('You are an enterprise AI assistant. Answer questions using only the retrieved document context provided. Always cite your sources.');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const scrollRef = useRef<ScrollView>(null);
