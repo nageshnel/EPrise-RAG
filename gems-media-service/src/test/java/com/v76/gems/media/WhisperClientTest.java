@@ -24,11 +24,16 @@ import static org.mockito.Mockito.*;
 class WhisperClientTest {
 
     // We mock the entire WebClient chain to avoid actual HTTP calls
-    @Mock WebClient webClient;
-    @Mock WebClient.RequestBodyUriSpec requestBodyUriSpec;
-    @Mock WebClient.RequestBodySpec requestBodySpec;
-    @Mock WebClient.RequestHeadersSpec<?> requestHeadersSpec;
-    @Mock WebClient.ResponseSpec responseSpec;
+    @Mock
+    WebClient webClient;
+    @Mock
+    WebClient.RequestBodyUriSpec requestBodyUriSpec;
+    @Mock
+    WebClient.RequestBodySpec requestBodySpec;
+    @Mock
+    WebClient.RequestHeadersSpec<?> requestHeadersSpec;
+    @Mock
+    WebClient.ResponseSpec responseSpec;
 
     WhisperClient whisperClient;
 
@@ -47,7 +52,7 @@ class WhisperClientTest {
         when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
         when(requestBodySpec.contentType(any())).thenReturn(requestBodySpec);
         when(requestBodySpec.header(anyString(), any())).thenReturn(requestBodySpec);
-        when(requestBodySpec.bodyValue(any())).thenReturn(requestHeadersSpec);
+        doReturn(requestHeadersSpec).when(requestBodySpec).bodyValue(any());
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
     }
 
