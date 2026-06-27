@@ -10,6 +10,7 @@ import org.springframework.ai.embedding.EmbeddingModel;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings("null")
 @ExtendWith(MockitoExtension.class)
 class QueryEmbeddingClientTest {
 

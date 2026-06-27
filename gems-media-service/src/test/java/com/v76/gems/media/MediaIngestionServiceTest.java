@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings({"null", "unchecked"})
 @ExtendWith(MockitoExtension.class)
 class MediaIngestionServiceTest {
 
