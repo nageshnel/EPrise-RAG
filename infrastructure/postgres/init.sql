@@ -14,7 +14,7 @@ create table if not exists chunk_embedding (
     source_type text not null,
     sequence integer not null,
     content text not null,
-    embedding vector(768) not null,
+    embedding vector(1536) not null,
     metadata jsonb not null default '{}'::jsonb,
     created_at timestamptz not null default now()
 );
