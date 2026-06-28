@@ -49,9 +49,9 @@ export async function xhr_sse_stream(
             const data_str = trimmed_line.slice(5).trim();
             if (data_str && current_event) {
               try {
-                const data = JSON.parse(data_str);
+                const data = current_event === 'content' ? data_str : JSON.parse(data_str);
                 on_event(current_event, data);
-              } catch {
+              } catch (e) {
                 // Ignore malformed chunks
               }
               current_event = '';
