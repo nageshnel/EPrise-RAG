@@ -87,7 +87,6 @@ public class ChatService {
                                                                 .event("sources")
                                                                 .data(finalSourcesJson)
                                                                 .build());
-                long aiContentGenerationStart = System.currentTimeMillis();
                 reactor.core.publisher.Flux<org.springframework.http.codec.ServerSentEvent<String>> contentEvents = textGenerationClient
                                 .stream(prompt)
                                 .map(chatResponse -> {
@@ -99,10 +98,6 @@ public class ChatService {
                                                         .data(token)
                                                         .build();
                                 });
-                long aiContentGenerationDuration = System.currentTimeMillis() - aiContentGenerationStart;
-                ActiveSpan.tag("rag.latency_ms", String.valueOf(aiContentGenerationDuration));
-                ActiveSpan.tag("rag.total_time_ms", String.valueOf(aiContentGenerationDuration + searchDuration));
-                ActiveSpan.tag("rag.sources", contentEvents.count().block().toString());
 
                 reactor.core.publisher.Flux<org.springframework.http.codec.ServerSentEvent<String>> doneEvent = reactor.core.publisher.Flux
                                 .just(

@@ -16,4 +16,4 @@ spring:
         enabled: true
 services:
   retrieval:
-    url: ${RETRIEVAL_SERVICE_URL:http://gems-retrieval-service:8083}
+    url: ${RETRIEVAL_SERVICE_URL:http://localhost:8083}

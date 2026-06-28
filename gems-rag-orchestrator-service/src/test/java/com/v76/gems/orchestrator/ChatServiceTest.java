@@ -135,10 +135,8 @@ class ChatServiceTest {
         when(generation.getOutput()).thenReturn(outputMsg);
         when(outputMsg.getText()).thenReturn("token1");
 
-        // contentEvents.count().block() will drain the flux, so we return a cold Flux
         when(textGenerationClient.stream("stream-prompt"))
-                .thenReturn(Flux.just(aiResponse))
-                .thenReturn(Flux.just(aiResponse)); // second subscription for concat
+                .thenReturn(Flux.just(aiResponse));
 
         Flux<ServerSentEvent<String>> resultFlux = chatService.streamChat(new ChatRequest("stream me"));
 
@@ -170,7 +168,6 @@ class ChatServiceTest {
         when(msg.getText()).thenReturn("answer");
 
         when(textGenerationClient.stream("prompt"))
-                .thenReturn(Flux.just(aiResponse))
                 .thenReturn(Flux.just(aiResponse));
 
         Flux<ServerSentEvent<String>> resultFlux = chatService.streamChat(new ChatRequest("?"));

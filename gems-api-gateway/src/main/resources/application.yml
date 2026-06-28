@@ -10,31 +10,25 @@ spring:
   cloud:
     kubernetes:
       discovery:
-        enabled: true
+        enabled: false
     gateway:
-      server:
-        webflux:
-          discovery:
-            locator:
-              enabled: true
-              lower-case-service-id: true
-          routes:
-            - id: etl-documents
-              uri: lb://gems-ai-etl-service
-              predicates:
-                - Path=/documents/**
-            - id: media
-              uri: lb://gems-media-service
-              predicates:
-                - Path=/media/**
-            - id: retrieval
-              uri: lb://gems-retrieval-service
-              predicates:
-                - Path=/retrieve/**
-            - id: orchestrator-chat
-              uri: lb://gems-rag-orchestrator-service
-              predicates:
-                - Path=/chat/**
+      routes:
+        - id: etl-documents
+          uri: http://localhost:8081
+          predicates:
+            - Path=/documents/**
+        - id: media
+          uri: http://localhost:8085
+          predicates:
+            - Path=/media/**
+        - id: retrieval
+          uri: http://localhost:8083
+          predicates:
+            - Path=/retrieve/**
+        - id: orchestrator-chat
+          uri: http://localhost:8084
+          predicates:
+            - Path=/chat/**
 gateway:
   security:
     api-key-header: X-API-Key
@@ -48,4 +42,38 @@ management:
     web:
       exposure:
         include: health,info,gateway,metrics
+
+---
+spring:
+  config:
+    activate:
+      on-profile: kubernetes
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+      routes:
+        - id: etl-documents
+          uri: lb://gems-ai-etl-service
+          predicates:
+            - Path=/documents/**
+        - id: media
+          uri: lb://gems-media-service
+          predicates:
+            - Path=/media/**
+        - id: retrieval
+          uri: lb://gems-retrieval-service
+          predicates:
+            - Path=/retrieve/**
+        - id: orchestrator-chat
+          uri: lb://gems-rag-orchestrator-service
+          predicates:
+            - Path=/chat/**
 

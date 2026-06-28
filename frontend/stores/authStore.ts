@@ -59,6 +59,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
 
       const data = await res.json(); // returns { token, expiresInMs }
+      console.log("logines success : ", JSON.stringify(data))
       const decoded = decodeJwt(data.token);
       if (!decoded) {
         set({ isLoading: false, error: 'Malformed authentication token received.' });

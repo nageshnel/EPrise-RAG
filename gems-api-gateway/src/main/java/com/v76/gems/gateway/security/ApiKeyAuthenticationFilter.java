@@ -7,6 +7,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.core.annotation.Order;
 import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
@@ -15,6 +16,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @Component
+@Order(-190)
 public class ApiKeyAuthenticationFilter implements WebFilter {
     private final GatewaySecurityProperties properties;
 
