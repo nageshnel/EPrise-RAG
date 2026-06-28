@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Text, View, ScrollView, TextInput, Pressable, ActivityIndicator, Alert } from 'react-native';
+import { Text, View, ScrollView, TextInput, Pressable, ActivityIndicator, Alert, Platform } from 'react-native';
 import * as DocumentPicker from 'expo-document-picker';
-import { useThemeStore, useThemeColors } from '../stores/themeStore';
-import { authFetch } from '../utils/api';
+import { useThemeStore, useThemeColors } from './stores/themeStore';
+import { authFetch } from './utils/api';
 
 type DocStatus = 'PENDING' | 'PROCESSING' | 'EMBEDDED' | 'FAILED';
 
@@ -94,12 +94,22 @@ export default function DocumentCenter() {
         const file = res.assets[0];
 
         const formData = new FormData();
-        const fileAsset = {
-          uri: file.uri,
-          name: file.name,
-          type: file.mimeType || 'application/octet-stream',
-        } as any;
-        formData.append('file', fileAsset);
+        let fileAsset: any;
+        if (Platform.OS === 'web') {
+          if (file.file) {
+            fileAsset = file.file;
+          } else {
+            const blobRes = await fetch(file.uri);
+            fileAsset = await blobRes.blob();
+          }
+        } else {
+          fileAsset = {
+            uri: file.uri,
+            name: file.name,
+            type: file.mimeType || 'application/octet-stream',
+          } as any;
+        }
+        formData.append('file', fileAsset, file.name);
 
         const uploadRes = await authFetch('/documents', {
           method: 'POST',
@@ -111,6 +121,10 @@ export default function DocumentCenter() {
         }
 
         const data = await uploadRes.json(); // returns { documentId, filename, chunksPublished }
+
+        if (data.chunksPublished === 0) {
+          throw new Error('No text content could be extracted from this file. If this is an image or scanned document, please ensure Tesseract OCR is installed and configured in the backend.');
+        }
 
         const newDoc: KBDocument = {
           id: data.documentId || String(Date.now()),
@@ -124,12 +138,13 @@ export default function DocumentCenter() {
         };
         setDocuments(d => [newDoc, ...d]);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('File upload error', e);
+      const errorMsg = e instanceof Error ? e.message : 'Could not upload and index document.';
       if (Platform.OS === 'web') {
-        alert('Failed to upload and index document. Please check the backend services.');
+        alert(errorMsg);
       } else {
-        Alert.alert('Upload Failed', 'Could not upload and index document.');
+        Alert.alert('Upload Failed', errorMsg);
       }
     } finally {
       setIsUploading(false);
