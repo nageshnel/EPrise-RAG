@@ -21,7 +21,12 @@ public class TextGenerationClient {
         log.info("Requesting streaming completion from ChatModel (prompt length: {} characters)", promptText != null ? promptText.length() : 0);
         return chatModel.stream(new org.springframework.ai.chat.prompt.Prompt(promptText))
                 .onErrorResume(e -> {
-                    log.error("Error occurred during text generation stream", e);
+                    if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException wcre) {
+                        log.error("WebClientResponseException during stream. Status: {}, Body: {}", 
+                                wcre.getStatusCode(), wcre.getResponseBodyAsString());
+                    } else {
+                        log.error("Error occurred during text generation stream", e);
+                    }
                     return reactor.core.publisher.Flux.error(e);
                 });
     }
@@ -33,7 +38,12 @@ public class TextGenerationClient {
         try {
             response = chatModel.call(new Prompt(promptText));
         } catch (Exception e) {
-            log.error("Failed to complete prompt via generative AI model", e);
+            if (e instanceof org.springframework.web.reactive.function.client.WebClientResponseException wcre) {
+                log.error("WebClientResponseException during complete. Status: {}, Body: {}", 
+                        wcre.getStatusCode(), wcre.getResponseBodyAsString());
+            } else {
+                log.error("Failed to complete prompt via generative AI model", e);
+            }
             throw e;
         }
         long duration = System.currentTimeMillis() - startTime;
