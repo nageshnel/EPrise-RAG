@@ -4,6 +4,8 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -12,6 +14,7 @@ import java.util.Date;
 
 @Component
 public class JwtProvider {
+    private static final Logger log = LoggerFactory.getLogger(JwtProvider.class);
     private final SecretKey signingKey;
     private final JwtProperties properties;
 
@@ -21,6 +24,7 @@ public class JwtProvider {
     }
 
     public String generateToken(String username, String role) {
+        log.info("Generating JWT token for user: {} with role: {}", username, role);
         Date now = new Date();
         Date expiry = new Date(now.getTime() + properties.expirationMs());
 
@@ -35,12 +39,19 @@ public class JwtProvider {
     }
 
     public Claims validateToken(String token) throws JwtException {
-        return Jwts.parser()
-                .verifyWith(signingKey)
-                .requireIssuer(properties.issuer())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
+        try {
+            Claims claims = Jwts.parser()
+                    .verifyWith(signingKey)
+                    .requireIssuer(properties.issuer())
+                    .build()
+                    .parseSignedClaims(token)
+                    .getPayload();
+            log.debug("Successfully validated token for user: {}", claims.getSubject());
+            return claims;
+        } catch (JwtException e) {
+            log.warn("Token validation failed: {}", e.getMessage());
+            throw e;
+        }
     }
 
     public String getUsernameFromToken(String token) {
