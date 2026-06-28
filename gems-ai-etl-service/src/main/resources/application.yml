@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 8081
 spring:
   application:
@@ -13,6 +13,11 @@ ai:
     strategy: paragraph
     max-segment-size: 1000
     max-overlap-size: 200
+tika:
+  ocr:
+    tesseract-path: ""  # Set this to the path containing your tesseract binary (e.g. "C:\\Program Files\\Tesseract-OCR" on Windows or "/usr/bin" on Linux)
+    tessdata-path: ""   # Set this if you need to override the path to the tessdata directory
+    strategy: ocr_and_text_extraction # Options: no_ocr, ocr_only, ocr_and_text_extraction, auto
 management:
   endpoints:
     web:
