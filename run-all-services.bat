@@ -17,9 +17,14 @@ if "%OPENAI_API_KEY%"=="" (
 )
 
 if "%OPENAI_BASE_URL%"=="" (
-    set "OPENAI_BASE_URL=https://openrouter.ai/api/v1"
-    echo OPENAI_BASE_URL default configured to https://openrouter.ai/api/v1 for this session.
+    set "OPENAI_BASE_URL=https://openrouter.ai/api"
+    echo OPENAI_BASE_URL default configured to https://openrouter.ai/api for this session.
 )
+
+set "SPRING_AI_EMBEDDING_MODEL=openai/text-embedding-3-small"
+set "SPRING_AI_CHAT_MODEL=openrouter/free"
+echo SPRING_AI_EMBEDDING_MODEL is set to %SPRING_AI_EMBEDDING_MODEL%
+echo SPRING_AI_CHAT_MODEL is set to %SPRING_AI_CHAT_MODEL%
 
 echo.
 echo Step 1: Compiling and building all Java modules...
