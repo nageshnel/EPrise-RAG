@@ -1,7 +1,6 @@
 package com.v76.gems.common.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import java.util.Objects;
 
 @ConfigurationProperties(prefix = "ai.chunking")
 public record ChunkingProperties(String strategy, int maxSegmentSize, int maxOverlapSize) {
