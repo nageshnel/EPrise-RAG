@@ -50,7 +50,7 @@ class ChunkEmbeddingRepositoryTest {
         repository.save(event, embedding);
 
         // update(sql, Object...) — varargs captured as Object[]
-        verify(jdbcTemplate).update(anyString(), any(Object[].class));
+        verify(jdbcTemplate).update(contains("insert into chunk_embedding"), any(Object[].class));
     }
 
     // -----------------------------------------------------------------------
@@ -66,7 +66,7 @@ class ChunkEmbeddingRepositoryTest {
         ArgumentCaptor<Object[]> argsCaptor = ArgumentCaptor.forClass(Object[].class);
         repository.save(event, embedding);
 
-        verify(jdbcTemplate).update(anyString(), argsCaptor.capture());
+        verify(jdbcTemplate).update(contains("insert into chunk_embedding"), argsCaptor.capture());
         Object[] args = argsCaptor.getValue();
 
         // args[5] = vector literal
@@ -87,10 +87,9 @@ class ChunkEmbeddingRepositoryTest {
                 .thenThrow(new JsonProcessingException("fail") {});
 
         ArgumentCaptor<Object[]> argsCaptor = ArgumentCaptor.forClass(Object[].class);
-        // Should NOT throw — ChunkEmbeddingRepository.toJson() catches the exception
         assertThatCode(() -> repository.save(event, embedding)).doesNotThrowAnyException();
 
-        verify(jdbcTemplate).update(anyString(), argsCaptor.capture());
+        verify(jdbcTemplate).update(contains("insert into chunk_embedding"), argsCaptor.capture());
         String metadataJson = (String) argsCaptor.getValue()[6];
         assertThat(metadataJson).isEqualTo("{}");
     }
@@ -108,7 +107,7 @@ class ChunkEmbeddingRepositoryTest {
 
         ArgumentCaptor<Object[]> argsCaptor = ArgumentCaptor.forClass(Object[].class);
         repository.save(event, embedding);
-        verify(jdbcTemplate).update(anyString(), argsCaptor.capture());
+        verify(jdbcTemplate).update(contains("insert into chunk_embedding"), argsCaptor.capture());
 
         Object[] args = argsCaptor.getValue();
         assertThat(args).hasSize(7);
@@ -122,5 +121,30 @@ class ChunkEmbeddingRepositoryTest {
         assertThat(args[3]).isEqualTo(1);
         // [4] = content
         assertThat(args[4]).isEqualTo("chunk content");
+    }
+
+    @Test
+    void save_documentSourceType_insertsDocumentMetadata() throws Exception {
+        UUID docId = UUID.randomUUID();
+        ChunkCreatedEvent event = new ChunkCreatedEvent(
+                docId, UUID.randomUUID(),
+                "DOCUMENT", 1,
+                "chunk content", Map.of("filename", "test.txt", "contentType", "text/plain", "size", 100L),
+                Instant.now()
+        );
+        float[] embedding = {0.1f};
+        when(objectMapper.writeValueAsString(any())).thenReturn("{}");
+
+        repository.save(event, embedding);
+
+        // Verify document_metadata insert is called with correct parameters
+        ArgumentCaptor<Object[]> docArgsCaptor = ArgumentCaptor.forClass(Object[].class);
+        verify(jdbcTemplate).update(contains("insert into document_metadata"), docArgsCaptor.capture());
+        Object[] docArgs = docArgsCaptor.getValue();
+        assertThat(docArgs).hasSize(4);
+        assertThat(docArgs[0]).isEqualTo(docId.toString());
+        assertThat(docArgs[1]).isEqualTo("test.txt");
+        assertThat(docArgs[2]).isEqualTo("text/plain");
+        assertThat(docArgs[3]).isEqualTo(100L);
     }
 }
