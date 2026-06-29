@@ -9,7 +9,7 @@ spring:
       base-url: ${OPENAI_BASE_URL:https://openrouter.ai/api}
       chat:
         options:
-          model: ${SPRING_AI_OCR_MODEL:google/gemini-flash-1.5-free}
+          model: ${SPRING_AI_OCR_MODEL:openrouter/free}
 management:
   endpoints:
     web:

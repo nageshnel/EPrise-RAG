@@ -23,8 +23,10 @@ if "%OPENAI_BASE_URL%"=="" (
 
 set "SPRING_AI_EMBEDDING_MODEL=openai/text-embedding-3-small"
 set "SPRING_AI_CHAT_MODEL=openrouter/free"
+set "SPRING_AI_OCR_MODEL=openrouter/free"
 echo SPRING_AI_EMBEDDING_MODEL is set to %SPRING_AI_EMBEDDING_MODEL%
 echo SPRING_AI_CHAT_MODEL is set to %SPRING_AI_CHAT_MODEL%
+echo SPRING_AI_OCR_MODEL is set to %SPRING_AI_OCR_MODEL%
 
 echo.
 echo Step 1: Compiling and building all Java modules...
