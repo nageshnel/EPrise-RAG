@@ -117,7 +117,22 @@ export default function DocumentCenter() {
         });
 
         if (!uploadRes.ok) {
-          throw new Error(`Server returned HTTP ${uploadRes.status}`);
+          let serverErrorMsg = '';
+          try {
+            const contentType = uploadRes.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              const errorJson = await uploadRes.json();
+              serverErrorMsg = errorJson.message || errorJson.error || '';
+            } else {
+              const errorText = await uploadRes.text();
+              serverErrorMsg = errorText && errorText.length < 150 ? errorText : '';
+            }
+          } catch (ignored) {}
+
+          const friendlyMsg = serverErrorMsg 
+            ? `Upload failed: ${serverErrorMsg}`
+            : `Server error during upload (HTTP ${uploadRes.status}). Please check service logs.`;
+          throw new Error(friendlyMsg);
         }
 
         const data = await uploadRes.json(); // returns { documentId, filename, chunksPublished }
