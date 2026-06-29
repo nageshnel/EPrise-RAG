@@ -17,3 +17,8 @@ ai:
     strategy: paragraph
     max-segment-size: 1000
     max-overlap-size: 200
+  minio:
+    url: ${MINIO_URL:http://localhost:9000}
+    access-key: ${MINIO_ACCESS_KEY:gems}
+    secret-key: ${MINIO_SECRET_KEY:gems-password}
+    bucket: media

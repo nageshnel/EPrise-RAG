@@ -37,12 +37,16 @@ class DocumentIngestionServiceTest {
     @Mock OcrClient ocrClient;
     @Mock ChunkingService chunkingService;
     @Mock KafkaTemplate<String, ChunkCreatedEvent> kafkaTemplate;
+    @Mock io.minio.MinioClient minioClient;
+    @Mock com.v76.gems.common.config.MinioProperties minioProperties;
 
     @InjectMocks DocumentIngestionService service;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         lenient().when(classifier.classify(any(), any(), any())).thenReturn(ProcessingStrategy.NATIVE_TEXT);
+        lenient().when(minioProperties.bucket()).thenReturn("documents");
+        lenient().when(minioClient.bucketExists(any())).thenReturn(true);
     }
 
     private MockMultipartFile sampleFile() {
@@ -146,7 +150,7 @@ class DocumentIngestionServiceTest {
 
     @Test
     void ingest_extractorThrowsIOException_propagates() throws IOException {
-        MultipartFile file = mock(MultipartFile.class);
+        MockMultipartFile file = sampleFile();
         when(extractor.extract(file)).thenThrow(new IOException("parse failure"));
 
         assertThatThrownBy(() -> service.ingest(file))

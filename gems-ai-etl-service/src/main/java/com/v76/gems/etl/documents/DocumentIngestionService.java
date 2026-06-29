@@ -2,6 +2,7 @@ package com.v76.gems.etl.documents;
 
 import com.v76.gems.common.chunking.Chunk;
 import com.v76.gems.common.chunking.ChunkingService;
+import com.v76.gems.common.config.MinioProperties;
 import com.v76.gems.etl.extraction.DocumentClassifier;
 import com.v76.gems.etl.extraction.DocumentExtraction;
 import com.v76.gems.etl.extraction.DocumentExtractor;
@@ -9,6 +10,7 @@ import com.v76.gems.etl.extraction.OcrClient;
 import com.v76.gems.etl.extraction.ProcessingStrategy;
 import com.v76.gems.events.ChunkCreatedEvent;
 import com.v76.gems.events.Topics;
+import io.minio.MinioClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -30,24 +32,58 @@ public class DocumentIngestionService {
     private final OcrClient ocrClient;
     private final ChunkingService chunkingService;
     private final KafkaTemplate<String, ChunkCreatedEvent> kafkaTemplate;
+    private final MinioClient minioClient;
+    private final MinioProperties minioProperties;
 
     public DocumentIngestionService(@NonNull DocumentExtractor extractor,
                                     @NonNull DocumentClassifier classifier,
                                     @NonNull OcrClient ocrClient,
                                     @NonNull ChunkingService chunkingService,
-                                    @NonNull KafkaTemplate<String, ChunkCreatedEvent> kafkaTemplate) {
+                                    @NonNull KafkaTemplate<String, ChunkCreatedEvent> kafkaTemplate,
+                                    @NonNull MinioClient minioClient,
+                                    @NonNull MinioProperties minioProperties) {
         this.extractor = Objects.requireNonNull(extractor);
         this.classifier = Objects.requireNonNull(classifier);
         this.ocrClient = Objects.requireNonNull(ocrClient);
         this.chunkingService = Objects.requireNonNull(chunkingService);
         this.kafkaTemplate = Objects.requireNonNull(kafkaTemplate);
+        this.minioClient = Objects.requireNonNull(minioClient);
+        this.minioProperties = Objects.requireNonNull(minioProperties);
     }
 
     public DocumentIngestionResult ingest(@NonNull MultipartFile file) throws IOException {
         Objects.requireNonNull(file);
         UUID documentId = UUID.randomUUID();
         log.info("Starting ingestion of document ID: {} for file: {}", documentId, file.getOriginalFilename());
-        
+
+        // Upload original file to MinIO
+        try {
+            String bucketName = minioProperties.bucket();
+            boolean found = minioClient.bucketExists(io.minio.BucketExistsArgs.builder().bucket(bucketName).build());
+            if (!found) {
+                minioClient.makeBucket(io.minio.MakeBucketArgs.builder().bucket(bucketName).build());
+                log.info("Created MinIO bucket: {}", bucketName);
+            }
+
+            String objectName = documentId.toString() + "-" + file.getOriginalFilename();
+            log.info("Uploading file {} to MinIO bucket {} as object {}", file.getOriginalFilename(), bucketName, objectName);
+
+            try (java.io.InputStream is = file.getInputStream()) {
+                minioClient.putObject(
+                    io.minio.PutObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectName)
+                        .stream(is, file.getSize(), -1)
+                        .contentType(file.getContentType() != null ? file.getContentType() : "application/octet-stream")
+                        .build()
+                );
+            }
+            log.info("Successfully uploaded file to MinIO: {}", objectName);
+        } catch (Exception e) {
+            log.error("Failed to upload file to MinIO for documentId: {}", documentId, e);
+            throw new IOException("Failed to persist file in MinIO", e);
+        }
+
         log.debug("Step 1: Extracting native text & metadata via Tika");
         DocumentExtraction extraction = extractor.extract(file);
         
@@ -61,6 +97,7 @@ public class DocumentIngestionService {
 
         String finalText = "";
         Map<String, Object> finalMetadata = new java.util.LinkedHashMap<>(extraction.metadata());
+        finalMetadata.put("storagePath", minioProperties.bucket() + "/" + documentId.toString() + "-" + file.getOriginalFilename());
 
         // Retrieve extracted embedded images if present
         @SuppressWarnings("unchecked")

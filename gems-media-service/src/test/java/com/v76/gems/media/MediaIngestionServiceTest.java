@@ -29,8 +29,16 @@ class MediaIngestionServiceTest {
     @Mock WhisperClient whisperClient;
     @Mock ChunkingService chunkingService;
     @Mock KafkaTemplate<String, ChunkCreatedEvent> kafkaTemplate;
+    @Mock io.minio.MinioClient minioClient;
+    @Mock com.v76.gems.common.config.MinioProperties minioProperties;
 
     @InjectMocks MediaIngestionService service;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() throws Exception {
+        lenient().when(minioProperties.bucket()).thenReturn("media");
+        lenient().when(minioClient.bucketExists(any())).thenReturn(true);
+    }
 
     private MockMultipartFile audioFile() {
         return new MockMultipartFile("file", "lecture.mp3", "audio/mpeg", "bytes".getBytes());
@@ -126,7 +134,7 @@ class MediaIngestionServiceTest {
 
     @Test
     void ingest_whisperClientThrowsIOException_propagates() throws IOException {
-        MultipartFile file = mock(MultipartFile.class);
+        MockMultipartFile file = audioFile();
         when(whisperClient.transcribe(file)).thenThrow(new IOException("whisper down"));
 
         assertThatThrownBy(() -> service.ingest(file))
