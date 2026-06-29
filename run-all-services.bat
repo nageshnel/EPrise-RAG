@@ -58,6 +58,10 @@ echo Starting Media Service (Port 8085)...
 start /b cmd /c "cd gems-media-service && mvnd spring-boot:run"
 timeout /t 2 /nobreak >nul
 
+echo Starting OCR Service (Port 8086 / gRPC Port 9086)...
+start /b cmd /c "cd gems-ocr-service && mvnd spring-boot:run"
+timeout /t 2 /nobreak >nul
+
 echo.
 echo Step 3: Starting API Gateway (Port 8080) in the foreground...
 cd gems-api-gateway

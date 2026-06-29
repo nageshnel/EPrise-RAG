@@ -27,3 +27,6 @@ spring:
 ai:
   retrieval:
     top-k: 5
+grpc:
+  server:
+    port: 9083

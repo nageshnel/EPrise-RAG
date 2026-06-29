@@ -17,6 +17,7 @@
         <module>gems-retrieval-service</module>
         <module>gems-rag-orchestrator-service</module>
         <module>gems-ocr-service</module>
+        <module>gems-grpc-common</module>
     </modules>
     <properties>
         <java.version>21</java.version>

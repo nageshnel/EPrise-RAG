@@ -60,7 +60,7 @@ public class DocumentIngestionService {
         ProcessingStrategy strategy = classifier.classify(file, extraction.text(), mimeType);
 
         String finalText = "";
-        Map<String, Object> finalMetadata = extraction.metadata();
+        Map<String, Object> finalMetadata = new java.util.LinkedHashMap<>(extraction.metadata());
 
         // Retrieve extracted embedded images if present
         @SuppressWarnings("unchecked")

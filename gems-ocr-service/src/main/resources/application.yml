@@ -15,3 +15,6 @@ management:
     web:
       exposure:
         include: health,info,metrics
+grpc:
+  server:
+    port: 9086

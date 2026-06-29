@@ -11,10 +11,13 @@
     <artifactId>gems-ocr-service</artifactId>
     <dependencies>
         <dependency><groupId>com.v76.gems</groupId><artifactId>gems-ai-common</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>com.v76.gems</groupId><artifactId>gems-grpc-common</artifactId><version>${project.version}</version></dependency>
+        <dependency><groupId>net.devh</groupId><artifactId>grpc-server-spring-boot-starter</artifactId><version>3.1.0.RELEASE</version></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-webflux</artifactId></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-actuator</artifactId></dependency>
         <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
+        <dependency><groupId>org.springframework.ai</groupId><artifactId>spring-ai-starter-model-openai</artifactId></dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

@@ -13,9 +13,11 @@ ai:
     strategy: paragraph
     max-segment-size: 1000
     max-overlap-size: 200
-services:
-  ocr:
-    url: ${OCR_SERVICE_URL:http://localhost:8086}
+grpc:
+  client:
+    ocr-service:
+      address: 'static://localhost:9086'
+      negotiation-type: plaintext
 management:
   endpoints:
     web:

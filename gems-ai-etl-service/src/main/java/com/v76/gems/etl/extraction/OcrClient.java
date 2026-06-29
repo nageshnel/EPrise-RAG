@@ -1,15 +1,14 @@
 package com.v76.gems.etl.extraction;
 
+import com.v76.gems.ocr.grpc.OcrGrpcServiceGrpc;
+import com.v76.gems.ocr.grpc.OcrRequest;
+import com.v76.gems.ocr.grpc.OcrResponse;
+import com.google.protobuf.ByteString;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.MediaType;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Component;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.lang.NonNull;
 
 import java.io.IOException;
@@ -19,12 +18,8 @@ import java.util.Objects;
 public class OcrClient {
     private static final Logger log = LoggerFactory.getLogger(OcrClient.class);
 
-    private final WebClient webClient;
-
-    public OcrClient(@NonNull WebClient.Builder webClientBuilder, @Value("${services.ocr.url:http://localhost:8086}") @NonNull String ocrServiceUrl) {
-        log.info("Initializing OcrClient pointing to: {}", ocrServiceUrl);
-        this.webClient = webClientBuilder.baseUrl(ocrServiceUrl).build();
-    }
+    @GrpcClient("ocr-service")
+    private OcrGrpcServiceGrpc.OcrGrpcServiceBlockingStub ocrStub;
 
     public String extractText(@NonNull MultipartFile file) throws IOException {
         Objects.requireNonNull(file);
@@ -36,32 +31,23 @@ public class OcrClient {
         String name = filename != null ? filename : "image.png";
         String mimeType = contentType != null ? contentType : "image/png";
 
-        log.info("Sending file '{}' to OCR service for text extraction (size: {} bytes)", name, fileBytes.length);
-
-        MultipartBodyBuilder builder = new MultipartBodyBuilder();
-        builder.part("file", new ByteArrayResource(fileBytes) {
-            @Override
-            public String getFilename() {
-                return name;
-            }
-        }, MediaType.parseMediaType(mimeType));
-
-        final MediaType multipartFormData = MediaType.MULTIPART_FORM_DATA;
-        if (multipartFormData == null) {
-            throw new IllegalStateException("MediaType.MULTIPART_FORM_DATA is null");
-        }
+        log.info("Sending file '{}' to OCR service via gRPC for text extraction (size: {} bytes)", name, fileBytes.length);
 
         try {
-            return webClient.post()
-                    .uri("/ocr/extract")
-                    .contentType(multipartFormData)
-                    .body(BodyInserters.fromMultipartData(builder.build()))
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block();
+            OcrRequest request = OcrRequest.newBuilder()
+                    .setFileBytes(ByteString.copyFrom(fileBytes))
+                    .setFilename(name)
+                    .setContentType(mimeType)
+                    .build();
+
+            OcrResponse response = ocrStub.extractText(request);
+            String extractedText = response.getText();
+            log.info("Successfully received gRPC OCR text extraction response ({} characters)", 
+                    extractedText != null ? extractedText.length() : 0);
+            return extractedText;
         } catch (Exception e) {
-            log.error("Failed to perform OCR extraction via ocr-service for file: {}", name, e);
-            throw new IOException("OCR service request failed: " + e.getMessage(), e);
+            log.error("Failed to perform OCR extraction via gRPC for file: {}", name, e);
+            throw new IOException("gRPC OCR service request failed: " + e.getMessage(), e);
         }
     }
 }
