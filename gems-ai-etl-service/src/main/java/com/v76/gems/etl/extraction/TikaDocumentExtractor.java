@@ -83,6 +83,16 @@ public class TikaDocumentExtractor implements DocumentExtractor {
         Metadata tikaMetadata = new Metadata();
         tikaMetadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, file.getOriginalFilename());
 
+        AutoDetectParser localParser = this.parser;
+        if (localParser == null) {
+            synchronized (this) {
+                localParser = this.parser;
+                if (localParser == null) {
+                    this.parser = localParser = buildParser();
+                }
+            }
+        }
+
         ParseContext context = new ParseContext();
 
         // 1. Configure Tesseract OCR options
@@ -103,12 +113,12 @@ public class TikaDocumentExtractor implements DocumentExtractor {
         context.set(PDFParserConfig.class, pdfConfig);
 
         // Set the parser in context
-        context.set(Parser.class, parser);
+        context.set(Parser.class, localParser);
 
         try (InputStream inputStream = file.getInputStream()) {
             // Use BodyContentHandler with -1 to avoid character limits
             BodyContentHandler handler = new BodyContentHandler(-1);
-            parser.parse(inputStream, handler, tikaMetadata, context);
+            localParser.parse(inputStream, handler, tikaMetadata, context);
             String text = handler.toString();
 
             Map<String, Object> metadata = new LinkedHashMap<>();
