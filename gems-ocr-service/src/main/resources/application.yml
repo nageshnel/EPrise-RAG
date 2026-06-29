@@ -1,0 +1,17 @@
+server:
+  port: 8086
+spring:
+  application:
+    name: gems-ocr-service
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://openrouter.ai/api}
+      chat:
+        options:
+          model: ${SPRING_AI_OCR_MODEL:google/gemini-flash-1.5-free}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

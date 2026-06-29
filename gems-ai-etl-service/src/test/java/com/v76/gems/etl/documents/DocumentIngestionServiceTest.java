@@ -4,8 +4,12 @@ import com.v76.gems.common.chunking.Chunk;
 import com.v76.gems.common.chunking.ChunkingService;
 import com.v76.gems.etl.extraction.DocumentExtraction;
 import com.v76.gems.etl.extraction.DocumentExtractor;
+import com.v76.gems.etl.extraction.DocumentClassifier;
+import com.v76.gems.etl.extraction.OcrClient;
+import com.v76.gems.etl.extraction.ProcessingStrategy;
 import com.v76.gems.events.ChunkCreatedEvent;
 import com.v76.gems.events.Topics;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -29,10 +33,17 @@ import static org.mockito.Mockito.*;
 class DocumentIngestionServiceTest {
 
     @Mock DocumentExtractor extractor;
+    @Mock DocumentClassifier classifier;
+    @Mock OcrClient ocrClient;
     @Mock ChunkingService chunkingService;
     @Mock KafkaTemplate<String, ChunkCreatedEvent> kafkaTemplate;
 
     @InjectMocks DocumentIngestionService service;
+
+    @BeforeEach
+    void setUp() {
+        lenient().when(classifier.classify(any(), any(), any())).thenReturn(ProcessingStrategy.NATIVE_TEXT);
+    }
 
     private MockMultipartFile sampleFile() {
         return new MockMultipartFile("file", "report.pdf", "application/pdf", "pdf content".getBytes());

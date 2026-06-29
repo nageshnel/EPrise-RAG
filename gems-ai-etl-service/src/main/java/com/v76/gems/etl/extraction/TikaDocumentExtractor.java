@@ -10,71 +10,29 @@ import org.apache.tika.parser.Parser;
 import org.apache.tika.parser.pdf.PDFParserConfig;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
 import org.apache.tika.sax.BodyContentHandler;
-import jakarta.annotation.PostConstruct;
-import org.apache.tika.config.TikaConfig;
-import org.springframework.beans.factory.annotation.Value;
+import org.apache.tika.extractor.EmbeddedDocumentExtractor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
+import org.xml.sax.ContentHandler;
 
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Component
 public class TikaDocumentExtractor implements DocumentExtractor {
     private static final Logger log = LoggerFactory.getLogger(TikaDocumentExtractor.class);
 
-    @Value("${tika.ocr.tesseract-path:}")
-    private String tesseractPath;
+    private final AutoDetectParser parser;
 
-    @Value("${tika.ocr.tessdata-path:}")
-    private String tessdataPath;
-
-    @Value("${tika.ocr.strategy:ocr_and_text_extraction}")
-    private String ocrStrategy;
-
-    private AutoDetectParser parser;
-
-    @PostConstruct
-    public void init() {
-        log.info("Initializing Tika Document Extractor parser...");
-        this.parser = buildParser();
-    }
-
-    private AutoDetectParser buildParser() {
-        if ((tesseractPath == null || tesseractPath.isBlank())
-                && (tessdataPath == null || tessdataPath.isBlank())) {
-            log.info("Tesseract path/tessdata path not explicitly set. Relying on default AutoDetectParser (system PATH).");
-            return new AutoDetectParser();
-        }
-
-        StringBuilder params = new StringBuilder();
-        if (tesseractPath != null && !tesseractPath.isBlank()) {
-            params.append("<param name=\"tesseractPath\" type=\"string\">")
-                  .append(tesseractPath).append("</param>");
-        }
-        if (tessdataPath != null && !tessdataPath.isBlank()) {
-            params.append("<param name=\"tessdataPath\" type=\"string\">")
-                  .append(tessdataPath).append("</param>");
-        }
-
-        String configXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
-                + "<properties><parsers>"
-                + "<parser class=\"org.apache.tika.parser.ocr.TesseractOCRParser\">"
-                + "<params>" + params + "</params>"
-                + "</parser>"
-                + "</parsers></properties>";
-
-        try (InputStream is = new ByteArrayInputStream(configXml.getBytes(StandardCharsets.UTF_8))) {
-            TikaConfig tikaConfig = new TikaConfig(is);
-            return new AutoDetectParser(tikaConfig);
-        } catch (Exception e) {
-            log.warn("Failed to build TikaConfig with custom tesseract path, falling back to default AutoDetectParser", e);
-            return new AutoDetectParser();
-        }
+    public TikaDocumentExtractor() {
+        // Standard AutoDetectParser using standard classpath configurations.
+        // We do not configure any native Tesseract here anymore.
+        this.parser = new AutoDetectParser();
     }
 
     @Override
@@ -83,42 +41,29 @@ public class TikaDocumentExtractor implements DocumentExtractor {
         Metadata tikaMetadata = new Metadata();
         tikaMetadata.set(TikaCoreProperties.RESOURCE_NAME_KEY, file.getOriginalFilename());
 
-        AutoDetectParser localParser = this.parser;
-        if (localParser == null) {
-            synchronized (this) {
-                localParser = this.parser;
-                if (localParser == null) {
-                    this.parser = localParser = buildParser();
-                }
-            }
-        }
-
         ParseContext context = new ParseContext();
 
-        // 1. Configure Tesseract OCR options
+        // 1. Explicitly disable local Tesseract OCR
         TesseractOCRConfig ocrConfig = new TesseractOCRConfig();
+        ocrConfig.setSkipOcr(true);
         context.set(TesseractOCRConfig.class, ocrConfig);
 
-        // 2. Configure PDF parser to perform OCR on scanned PDFs
+        // 2. Configure PDF parser to extract inline images (so classifier can detect them) but skip local OCR
         PDFParserConfig pdfConfig = new PDFParserConfig();
-        String strategyStr = ocrStrategy != null ? ocrStrategy : "ocr_and_text_extraction";
-        try {
-            PDFParserConfig.OCR_STRATEGY strategy = PDFParserConfig.OCR_STRATEGY.valueOf(strategyStr.toUpperCase());
-            pdfConfig.setOcrStrategy(strategy);
-            log.info("Configuring Tika PDF OCR Strategy: {}", strategy);
-        } catch (IllegalArgumentException e) {
-            log.warn("Invalid OCR strategy configured: {}. Falling back to default OCR_AND_TEXT_EXTRACTION.", ocrStrategy);
-            pdfConfig.setOcrStrategy(PDFParserConfig.OCR_STRATEGY.OCR_AND_TEXT_EXTRACTION);
-        }
+        pdfConfig.setExtractInlineImages(true);
+        pdfConfig.setOcrStrategy(PDFParserConfig.OCR_STRATEGY.NO_OCR);
         context.set(PDFParserConfig.class, pdfConfig);
 
+        // 3. Register our embedded document extractor to capture images
+        ImageCollectingExtractor imageExtractor = new ImageCollectingExtractor();
+        context.set(EmbeddedDocumentExtractor.class, imageExtractor);
+
         // Set the parser in context
-        context.set(Parser.class, localParser);
+        context.set(Parser.class, parser);
 
         try (InputStream inputStream = file.getInputStream()) {
-            // Use BodyContentHandler with -1 to avoid character limits
             BodyContentHandler handler = new BodyContentHandler(-1);
-            localParser.parse(inputStream, handler, tikaMetadata, context);
+            parser.parse(inputStream, handler, tikaMetadata, context);
             String text = handler.toString();
 
             Map<String, Object> metadata = new LinkedHashMap<>();
@@ -126,12 +71,52 @@ public class TikaDocumentExtractor implements DocumentExtractor {
             metadata.put("contentType", file.getContentType());
             metadata.put("size", file.getSize());
             metadata.put("extractor", "apache-tika");
+            
+            // Add collected embedded images to metadata
+            metadata.put("embeddedImages", imageExtractor.getImages());
 
-            log.info("Successfully extracted {} characters from {}", text != null ? text.length() : 0, file.getOriginalFilename());
+            log.info("Successfully extracted {} characters and {} embedded images from {}", 
+                    text != null ? text.length() : 0, imageExtractor.getImages().size(), file.getOriginalFilename());
             return new DocumentExtraction(text, metadata);
         } catch (Exception e) {
             log.error("Apache Tika failed to parse document: {}", file.getOriginalFilename(), e);
             throw new IOException("Failed to parse document using Tika", e);
+        }
+    }
+
+    /**
+     * Custom EmbeddedDocumentExtractor to intercept and collect images.
+     */
+    private static class ImageCollectingExtractor implements EmbeddedDocumentExtractor {
+        private final List<byte[]> images = new ArrayList<>();
+
+        public List<byte[]> getImages() {
+            return images;
+        }
+
+        @Override
+        public boolean shouldParseEmbedded(Metadata metadata) {
+            String contentType = metadata.get(Metadata.CONTENT_TYPE);
+            if (contentType != null && contentType.startsWith("image/")) {
+                return true;
+            }
+            String resourceName = metadata.get(TikaCoreProperties.RESOURCE_NAME_KEY);
+            if (resourceName != null) {
+                String lower = resourceName.toLowerCase();
+                return lower.endsWith(".png") || lower.endsWith(".jpg") || lower.endsWith(".jpeg") || lower.endsWith(".gif");
+            }
+            return false;
+        }
+
+        @Override
+        public void parseEmbedded(InputStream stream, ContentHandler handler, Metadata metadata, boolean outputHtml) throws IOException {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            byte[] buffer = new byte[4096];
+            int read;
+            while ((read = stream.read(buffer)) != -1) {
+                bos.write(buffer, 0, read);
+            }
+            images.add(bos.toByteArray());
         }
     }
 }
