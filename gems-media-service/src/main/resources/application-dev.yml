@@ -1,0 +1,12 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+services:
+  whisper:
+    url: ${WHISPER_URL:https://openrouter.ai/api/v1}
+    api-key: ${OPENAI_API_KEY:}
+ai:
+  minio:
+    url: http://localhost:9000
+    access-key: gems
+    secret-key: gems-password

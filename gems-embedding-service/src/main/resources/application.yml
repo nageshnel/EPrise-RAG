@@ -3,12 +3,9 @@ server:
 spring:
   application:
     name: gems-embedding-service
-  datasource:
-    url: jdbc:postgresql://localhost:5432/gems_ai
-    username: gems
-    password: gems
+  profiles:
+    active: dev
   kafka:
-    bootstrap-servers: localhost:9092
     consumer:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
@@ -21,7 +18,6 @@ spring:
       embedding:
         options:
           model: ${SPRING_AI_EMBEDDING_MODEL:text-embedding-3-small}
-spring.cloud.kubernetes.discovery.enabled: true
 ai:
   embedding-api:
     dimensions: ${EMBEDDING_DIMENSIONS:1536}

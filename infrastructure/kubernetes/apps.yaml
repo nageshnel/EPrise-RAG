@@ -30,6 +30,8 @@ spec:
             - secretRef:
                 name: airag-model-api-secrets
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
@@ -98,6 +100,8 @@ spec:
           ports:
             - containerPort: 8081
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
@@ -164,6 +168,8 @@ spec:
             - secretRef:
                 name: airag-model-api-secrets
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
@@ -234,6 +240,8 @@ spec:
             - configMapRef:
                 name: airag-model-api-config
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
@@ -304,6 +312,8 @@ spec:
             - configMapRef:
                 name: airag-model-api-config
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
@@ -376,6 +386,8 @@ spec:
             - configMapRef:
                 name: airag-model-api-config
           env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME

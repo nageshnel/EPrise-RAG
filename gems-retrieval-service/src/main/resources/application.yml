@@ -3,16 +3,10 @@ server:
 spring:
   application:
     name: gems-retrieval-service
-  data:
-    redis:
-      host: ${SPRING_DATA_REDIS_HOST:localhost}
-      port: ${SPRING_DATA_REDIS_PORT:6379}
+  profiles:
+    active: dev
   cache:
     type: redis
-  datasource:
-    url: jdbc:postgresql://localhost:5432/gems_ai
-    username: gems
-    password: gems
   ai:
     openai:
       api-key: ${OPENAI_API_KEY:}
@@ -20,10 +14,6 @@ spring:
       embedding:
         options:
           model: ${SPRING_AI_EMBEDDING_MODEL:text-embedding-3-small}
-  cloud:
-    kubernetes:
-      discovery:
-        enabled: true
 ai:
   retrieval:
     top-k: 5

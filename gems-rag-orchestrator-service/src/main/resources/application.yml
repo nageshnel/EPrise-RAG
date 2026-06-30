@@ -3,6 +3,8 @@ server:
 spring:
   application:
     name: gems-rag-orchestrator-service
+  profiles:
+    active: dev
   ai:
     openai:
       api-key: ${OPENAI_API_KEY:}
@@ -10,12 +12,3 @@ spring:
       chat:
         options:
           model: ${SPRING_AI_CHAT_MODEL:openrouter/free}
-  cloud:
-    kubernetes:
-      discovery:
-        enabled: true
-grpc:
-  client:
-    retrieval-service:
-      address: 'static://localhost:9083'
-      negotiation-type: plaintext

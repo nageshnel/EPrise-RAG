@@ -1,0 +1,13 @@
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+ai:
+  minio:
+    url: http://localhost:9000
+    access-key: gems
+    secret-key: gems-password
+grpc:
+  client:
+    ocr-service:
+      address: 'static://localhost:9086'
+      negotiation-type: plaintext

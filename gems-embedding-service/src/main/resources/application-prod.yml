@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/gems_ai}
+    username: ${SPRING_DATASOURCE_USERNAME:gems}
+    password: ${SPRING_DATASOURCE_PASSWORD:gems}
+  kafka:
+    bootstrap-servers: kafka:9092
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true

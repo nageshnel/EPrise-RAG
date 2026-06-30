@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+grpc:
+  client:
+    retrieval-service:
+      address: 'dns:///gems-retrieval-service:9083'
+      negotiation-type: plaintext

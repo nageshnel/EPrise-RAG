@@ -1,0 +1,33 @@
+spring:
+  r2dbc:
+    url: ${SPRING_R2DBC_URL:r2dbc:postgresql://postgres:5432/gems_ai}
+    username: ${SPRING_R2DBC_USERNAME:gems}
+    password: ${SPRING_R2DBC_PASSWORD:gems}
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+      routes:
+        - id: etl-documents
+          uri: lb://gems-ai-etl-service
+          predicates:
+            - Path=/documents/**
+        - id: media
+          uri: lb://gems-media-service
+          predicates:
+            - Path=/media/**
+        - id: retrieval
+          uri: lb://gems-retrieval-service
+          predicates:
+            - Path=/retrieve/**
+        - id: orchestrator-chat
+          uri: lb://gems-rag-orchestrator-service
+          predicates:
+            - Path=/chat/**

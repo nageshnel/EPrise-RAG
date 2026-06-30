@@ -3,26 +3,20 @@ server:
 spring:
   application:
     name: gems-media-service
+  profiles:
+    active: dev
   servlet:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
   kafka:
-    bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-services:
-  whisper:
-    url: ${WHISPER_URL:https://openrouter.ai/api/v1}
-    api-key: ${OPENAI_API_KEY:}
 ai:
   chunking:
     strategy: paragraph
     max-segment-size: 1000
     max-overlap-size: 200
   minio:
-    url: ${MINIO_URL:http://localhost:9000}
-    access-key: ${MINIO_ACCESS_KEY:gems}
-    secret-key: ${MINIO_SECRET_KEY:gems-password}
     bucket: media

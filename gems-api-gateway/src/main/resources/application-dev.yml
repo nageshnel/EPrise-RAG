@@ -1,0 +1,27 @@
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/gems_ai
+    username: gems
+    password: gems
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: false
+    gateway:
+      routes:
+        - id: etl-documents
+          uri: http://localhost:8081
+          predicates:
+            - Path=/documents/**
+        - id: media
+          uri: http://localhost:8085
+          predicates:
+            - Path=/media/**
+        - id: retrieval
+          uri: http://localhost:8083
+          predicates:
+            - Path=/retrieve/**
+        - id: orchestrator-chat
+          uri: http://localhost:8084
+          predicates:
+            - Path=/chat/**

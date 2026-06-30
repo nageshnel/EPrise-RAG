@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/gems_ai
+    username: gems
+    password: gems
+  kafka:
+    bootstrap-servers: localhost:9092
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: false

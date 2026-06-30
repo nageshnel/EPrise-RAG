@@ -1,0 +1,10 @@
+spring:
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: false
+grpc:
+  client:
+    retrieval-service:
+      address: 'static://localhost:9083'
+      negotiation-type: plaintext
