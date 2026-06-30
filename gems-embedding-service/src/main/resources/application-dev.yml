@@ -1,4 +1,7 @@
 spring:
+  devtools:
+    restart:
+      enabled: true
   datasource:
     url: jdbc:postgresql://localhost:5432/gems_ai
     username: gems

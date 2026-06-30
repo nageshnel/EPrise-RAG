@@ -1,4 +1,7 @@
 spring:
+  devtools:
+    restart:
+      enabled: false
   data:
     redis:
       host: ${SPRING_DATA_REDIS_HOST:valkey}

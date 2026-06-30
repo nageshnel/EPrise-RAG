@@ -1,4 +1,7 @@
 spring:
+  devtools:
+    restart:
+      enabled: false
   kafka:
     bootstrap-servers: kafka:9092
 ai:

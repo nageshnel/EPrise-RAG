@@ -1,4 +1,7 @@
 spring:
+  devtools:
+    restart:
+      enabled: false
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/gems_ai}
     username: ${SPRING_DATASOURCE_USERNAME:gems}

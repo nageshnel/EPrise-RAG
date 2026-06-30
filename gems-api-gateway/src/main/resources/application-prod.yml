@@ -1,4 +1,7 @@
 spring:
+  devtools:
+    restart:
+      enabled: false
   r2dbc:
     url: ${SPRING_R2DBC_URL:r2dbc:postgresql://postgres:5432/gems_ai}
     username: ${SPRING_R2DBC_USERNAME:gems}

@@ -1,4 +1,7 @@
 spring:
+  devtools:
+    restart:
+      enabled: true
   r2dbc:
     url: r2dbc:postgresql://localhost:5432/gems_ai
     username: gems

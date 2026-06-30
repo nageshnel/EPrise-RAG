@@ -1,4 +1,7 @@
 spring:
+  devtools:
+    restart:
+      enabled: false
   cloud:
     kubernetes:
       discovery:

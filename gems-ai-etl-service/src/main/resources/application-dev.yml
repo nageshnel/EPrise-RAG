@@ -1,4 +1,7 @@
 spring:
+  devtools:
+    restart:
+      enabled: true
   kafka:
     bootstrap-servers: localhost:9092
 ai:

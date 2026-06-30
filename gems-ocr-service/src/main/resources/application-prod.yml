@@ -1,1 +1,4 @@
-# Prod-specific properties for gems-ocr-service
+spring:
+  devtools:
+    restart:
+      enabled: false
