@@ -158,10 +158,14 @@ export default function ChatPlayground() {
               tokens: Math.round(m.text.length / 4) + 10,
             } : m
           ));
-          setIsGenerating(false);
         }
       }
-    ).catch(err => {
+    ).then(() => {
+      setMessages(prev => prev.map(m =>
+        m.id === assistantId ? { ...m, isStreaming: false } : m
+      ));
+      setIsGenerating(false);
+    }).catch(err => {
       console.error('SSE Stream error', err);
       setMessages(prev => prev.map(m =>
         m.id === assistantId ? {

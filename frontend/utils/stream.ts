@@ -42,14 +42,18 @@ export async function xhr_sse_stream(
         buffer = lines.pop() ?? ''; // Keep incomplete line
 
         for (const line of lines) {
-          const trimmed_line = line.trim();
+          const cleanLine = line.endsWith('\r') ? line.slice(0, -1) : line;
+          const trimmed_line = cleanLine.trimStart();
           if (trimmed_line.startsWith('event:')) {
             current_event = trimmed_line.slice(6).trim() as SseEventType;
           } else if (trimmed_line.startsWith('data:')) {
-            const data_str = trimmed_line.slice(5).trim();
-            if (data_str && current_event) {
+            let data_str = trimmed_line.slice(5);
+            if (data_str.startsWith(' ')) {
+              data_str = data_str.slice(1);
+            }
+            if (current_event) {
               try {
-                const data = current_event === 'content' ? data_str : JSON.parse(data_str);
+                const data = current_event === 'content' ? data_str : JSON.parse(data_str.trim());
                 on_event(current_event, data);
               } catch (e) {
                 // Ignore malformed chunks
@@ -65,6 +69,37 @@ export async function xhr_sse_stream(
       // readyState 4 (DONE)
       if (xhr.readyState === 4) {
         signal.removeEventListener('abort', handle_abort);
+
+        // Flush any remaining text in buffer
+        if (buffer.trim().length > 0) {
+          buffer += '\n';
+          const lines = buffer.split('\n');
+          for (const line of lines) {
+            const cleanLine = line.endsWith('\r') ? line.slice(0, -1) : line;
+            const trimmed_line = cleanLine.trimStart();
+            if (trimmed_line.startsWith('event:')) {
+              current_event = trimmed_line.slice(6).trim() as SseEventType;
+            } else if (trimmed_line.startsWith('data:')) {
+              let data_str = trimmed_line.slice(5);
+              if (data_str.startsWith(' ')) {
+                data_str = data_str.slice(1);
+              }
+              if (current_event) {
+                try {
+                  const data = current_event === 'content' ? data_str : JSON.parse(data_str.trim());
+                  on_event(current_event, data);
+                } catch (e) {
+                  // Ignore malformed chunks
+                }
+                current_event = '';
+              }
+            } else if (trimmed_line === '') {
+              current_event = '';
+            }
+          }
+          buffer = '';
+        }
+
         if (xhr.status !== 200 && xhr.status !== 0) {
           reject(new Error(`SSE stream failed: HTTP ${xhr.status}`));
         } else {
