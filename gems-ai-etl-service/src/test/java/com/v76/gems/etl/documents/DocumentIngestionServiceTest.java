@@ -157,4 +157,35 @@ class DocumentIngestionServiceTest {
                 .isInstanceOf(IOException.class)
                 .hasMessage("parse failure");
     }
+
+    @Test
+    void ingest_nativeTextWithEmbeddedImages_performsParallelOcrAndPersistsImagesToMinio() throws IOException {
+        MockMultipartFile file = sampleFile();
+        byte[] img1 = "img1".getBytes();
+        byte[] img2 = "img2".getBytes();
+        DocumentExtraction extraction = new DocumentExtraction(
+                "Native text content.",
+                Map.of("embeddedImages", List.of(img1, img2))
+        );
+
+        when(extractor.extract(file)).thenReturn(extraction);
+        when(classifier.classify(any(), any(), any())).thenReturn(ProcessingStrategy.NATIVE_TEXT);
+        when(ocrClient.extractText(eq(img1), anyString(), anyString())).thenReturn("OCR Text 1");
+        when(ocrClient.extractText(eq(img2), anyString(), anyString())).thenReturn("OCR Text 2");
+
+        ArgumentCaptor<String> textCaptor = ArgumentCaptor.forClass(String.class);
+        when(chunkingService.chunk(textCaptor.capture(), any())).thenReturn(List.of(new Chunk(1, "chunk text", Map.of())));
+
+        service.ingest(file);
+
+        // Verify images were uploaded to MinIO
+        verify(minioClient, times(2)).putObject(any(io.minio.PutObjectArgs.class));
+        
+        // Verify final concatenated text contains OCR text and image paths
+        String finalText = textCaptor.getValue();
+        assertThat(finalText).contains("Native text content.");
+        assertThat(finalText).contains("[Embedded Image 1 Storage Path: documents/");
+        assertThat(finalText).contains("OCR Text 1");
+        assertThat(finalText).contains("OCR Text 2");
+    }
 }

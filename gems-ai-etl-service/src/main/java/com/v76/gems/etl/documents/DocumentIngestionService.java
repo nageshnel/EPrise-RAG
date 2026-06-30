@@ -106,20 +106,44 @@ public class DocumentIngestionService {
         if (strategy == ProcessingStrategy.OCR) {
             log.info("Executing OCR extraction flow for: {}", file.getOriginalFilename());
             if (embeddedImages != null && !embeddedImages.isEmpty()) {
-                log.info("Found {} embedded images inside document. Performing page-by-page/image-by-image OCR.", embeddedImages.size());
-                StringBuilder sb = new StringBuilder();
+                log.info("Found {} embedded images inside document. Performing page-by-page/image-by-image OCR in parallel.", embeddedImages.size());
+                List<java.util.concurrent.CompletableFuture<String>> futures = new java.util.ArrayList<>();
                 int idx = 1;
                 for (byte[] imgBytes : embeddedImages) {
-                    try {
-                        String ocrText = ocrClient.extractText(imgBytes, "page_" + idx + ".png", "image/png");
-                        if (ocrText != null && !ocrText.isBlank()) {
-                            sb.append("\n--- OCR Text (Image ").append(idx).append(") ---\n");
-                            sb.append(ocrText).append("\n");
+                    final int currentIdx = idx;
+                    final String imageObjectName = documentId.toString() + "-page_" + currentIdx + ".png";
+                    futures.add(java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                        try {
+                            // 1. Upload scanned page image to MinIO
+                            minioClient.putObject(
+                                io.minio.PutObjectArgs.builder()
+                                    .bucket(minioProperties.bucket())
+                                    .object(imageObjectName)
+                                    .stream(new java.io.ByteArrayInputStream(imgBytes), imgBytes.length, -1)
+                                    .contentType("image/png")
+                                    .build()
+                            );
+                            // 2. Extract OCR text
+                            String ocrText = ocrClient.extractText(imgBytes, "page_" + currentIdx + ".png", "image/png");
+                            if (ocrText != null && !ocrText.isBlank()) {
+                                return "\n--- OCR Text (Image " + currentIdx + " Storage Path: " + minioProperties.bucket() + "/" + imageObjectName + ") ---\n" + ocrText + "\n";
+                            }
+                        } catch (Exception e) {
+                            log.warn("Failed to process and upload embedded page image index: {}", currentIdx, e);
                         }
-                    } catch (Exception e) {
-                        log.warn("Failed to extract text from embedded image index: {}", idx, e);
-                    }
+                        return "";
+                    }));
                     idx++;
+                }
+
+                // Wait for all tasks to complete
+                java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+
+                StringBuilder sb = new StringBuilder();
+                for (java.util.concurrent.CompletableFuture<String> future : futures) {
+                    try {
+                        sb.append(future.get());
+                    } catch (Exception ignored) {}
                 }
                 finalText = sb.toString().trim();
             } else {
@@ -135,20 +159,44 @@ public class DocumentIngestionService {
             
             // If there are embedded images (e.g. inline images inside DOCX), perform hybrid OCR and append
             if (embeddedImages != null && !embeddedImages.isEmpty()) {
-                log.info("Document is native text, but contains {} embedded images. Performing hybrid OCR merging.", embeddedImages.size());
-                StringBuilder sb = new StringBuilder(finalText != null ? finalText : "");
+                log.info("Document is native text, but contains {} embedded images. Performing hybrid OCR merging in parallel.", embeddedImages.size());
+                List<java.util.concurrent.CompletableFuture<String>> futures = new java.util.ArrayList<>();
                 int idx = 1;
                 for (byte[] imgBytes : embeddedImages) {
-                    try {
-                        String ocrText = ocrClient.extractText(imgBytes, "inline_" + idx + ".png", "image/png");
-                        if (ocrText != null && !ocrText.isBlank()) {
-                            sb.append("\n\n[Embedded Image ").append(idx).append(" OCR Extracted Text]:\n");
-                            sb.append(ocrText);
+                    final int currentIdx = idx;
+                    final String imageObjectName = documentId.toString() + "-inline_" + currentIdx + ".png";
+                    futures.add(java.util.concurrent.CompletableFuture.supplyAsync(() -> {
+                        try {
+                            // 1. Upload inline image to MinIO
+                            minioClient.putObject(
+                                io.minio.PutObjectArgs.builder()
+                                    .bucket(minioProperties.bucket())
+                                    .object(imageObjectName)
+                                    .stream(new java.io.ByteArrayInputStream(imgBytes), imgBytes.length, -1)
+                                    .contentType("image/png")
+                                    .build()
+                            );
+                            // 2. Extract OCR text
+                            String ocrText = ocrClient.extractText(imgBytes, "inline_" + currentIdx + ".png", "image/png");
+                            if (ocrText != null && !ocrText.isBlank()) {
+                                return "\n\n[Embedded Image " + currentIdx + " Storage Path: " + minioProperties.bucket() + "/" + imageObjectName + "]\n[OCR Extracted Text]:\n" + ocrText;
+                            }
+                        } catch (Exception e) {
+                            log.warn("Failed to process and upload inline image index: {}", currentIdx, e);
                         }
-                    } catch (Exception e) {
-                        log.warn("Failed to extract text from inline image index: {}", idx, e);
-                    }
+                        return "";
+                    }));
                     idx++;
+                }
+
+                // Wait for all tasks to complete
+                java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+
+                StringBuilder sb = new StringBuilder(finalText != null ? finalText : "");
+                for (java.util.concurrent.CompletableFuture<String> future : futures) {
+                    try {
+                        sb.append(future.get());
+                    } catch (Exception ignored) {}
                 }
                 finalText = sb.toString();
                 finalMetadata.put("ocrApplied", "hybrid");
