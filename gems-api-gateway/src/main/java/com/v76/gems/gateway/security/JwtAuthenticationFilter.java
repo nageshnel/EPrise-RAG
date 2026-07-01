@@ -60,8 +60,9 @@ public class JwtAuthenticationFilter implements WebFilter {
             Claims claims = jwtProvider.validateToken(token);
             String username = claims.getSubject();
             String role = claims.get("role", String.class);
+            String userId = claims.get("userId", String.class);
 
-            log.debug("JWT successfully validated for user: {}, role: {}", username, role);
+            log.debug("JWT successfully validated for user: {}, ID: {}, role: {}", username, userId, role);
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
@@ -70,7 +71,17 @@ public class JwtAuthenticationFilter implements WebFilter {
                             List.of(new SimpleGrantedAuthority("ROLE_" + role))
                     );
 
-            return java.util.Objects.requireNonNull(chain.filter(exchange)
+            ServerWebExchange.Builder exchangeBuilder = exchange.mutate();
+            var requestBuilder = exchange.getRequest().mutate()
+                    .header("X-User-Username", username)
+                    .header("X-User-Role", role);
+            if (userId != null) {
+                requestBuilder.header("X-User-Id", userId);
+            }
+            exchangeBuilder.request(requestBuilder.build());
+            ServerWebExchange mutatedExchange = exchangeBuilder.build();
+
+            return java.util.Objects.requireNonNull(chain.filter(mutatedExchange)
                     .contextWrite(ReactiveSecurityContextHolder.withAuthentication(authentication)));
         } catch (JwtException e) {
             log.warn("JWT validation failed for path {} - error: {}", path, e.getMessage());

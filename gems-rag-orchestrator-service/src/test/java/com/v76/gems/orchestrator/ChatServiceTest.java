@@ -26,8 +26,25 @@ class ChatServiceTest {
     @Mock PromptBuilder promptBuilder;
     @Mock TextGenerationClient textGenerationClient;
     @Mock ObjectMapper objectMapper;
+    @Mock ChatSessionRepository sessionRepository;
+    @Mock ChatMessageRepository messageRepository;
 
     @InjectMocks ChatService chatService;
+
+    @org.junit.jupiter.api.BeforeEach
+    void setUp() {
+        lenient().when(sessionRepository.save(any(ChatSession.class))).thenAnswer(invocation -> {
+            ChatSession s = invocation.getArgument(0);
+            return new ChatSession(
+                s.id() != null ? s.id() : UUID.randomUUID(),
+                s.userId(),
+                s.title(),
+                s.createdAt(),
+                s.updatedAt()
+            );
+        });
+        lenient().when(messageRepository.findRecentBySessionId(any(UUID.class), anyInt())).thenReturn(List.of());
+    }
 
     private RetrievedChunk chunk(UUID chunkId, UUID sourceId, int seq) {
         return new RetrievedChunk(chunkId, sourceId, "DOCUMENT", seq, "content " + seq, 0.05, Map.of("k", "v"));
@@ -44,13 +61,13 @@ class ChatServiceTest {
         RetrievedChunk c = chunk(chunkId, sourceId, 1);
         RetrieveResponse retrieveResponse = new RetrieveResponse(List.of(c));
 
-        ChatRequest request = new ChatRequest("What is AI?");
+        ChatRequest request = new ChatRequest("What is AI?", null);
 
         when(retrievalClient.retrieve("What is AI?")).thenReturn(retrieveResponse);
-        when(promptBuilder.build(eq("What is AI?"), anyList())).thenReturn("built-prompt");
+        when(promptBuilder.build(eq("What is AI?"), anyList(), anyList())).thenReturn("built-prompt");
         when(textGenerationClient.complete("built-prompt")).thenReturn("AI is intelligence.");
 
-        com.v76.gems.orchestrator.ChatResponse response = chatService.chat(request);
+        com.v76.gems.orchestrator.ChatResponse response = chatService.chat(UUID.randomUUID(), request);
 
         assertThat(response.answer()).isEqualTo("AI is intelligence.");
         assertThat(response.sources()).hasSize(1);
@@ -69,10 +86,10 @@ class ChatServiceTest {
     @Test
     void chat_nullRetrievalResponse_returnsEmptySourceList() {
         when(retrievalClient.retrieve(anyString())).thenReturn(null);
-        when(promptBuilder.build(anyString(), eq(List.of()))).thenReturn("prompt");
+        when(promptBuilder.build(anyString(), eq(List.of()), anyList())).thenReturn("prompt");
         when(textGenerationClient.complete("prompt")).thenReturn("I don't know.");
 
-        com.v76.gems.orchestrator.ChatResponse response = chatService.chat(new ChatRequest("?"));
+        com.v76.gems.orchestrator.ChatResponse response = chatService.chat(UUID.randomUUID(), new ChatRequest("?", null));
 
         assertThat(response.sources()).isEmpty();
         assertThat(response.answer()).isEqualTo("I don't know.");
@@ -85,12 +102,12 @@ class ChatServiceTest {
     @Test
     void chat_emptyChunks_promptBuiltWithEmptyList() {
         when(retrievalClient.retrieve(anyString())).thenReturn(new RetrieveResponse(List.of()));
-        when(promptBuilder.build(anyString(), eq(List.of()))).thenReturn("empty-prompt");
+        when(promptBuilder.build(anyString(), eq(List.of()), anyList())).thenReturn("empty-prompt");
         when(textGenerationClient.complete("empty-prompt")).thenReturn("No info.");
 
-        chatService.chat(new ChatRequest("unknown topic"));
+        chatService.chat(UUID.randomUUID(), new ChatRequest("unknown topic", null));
 
-        verify(promptBuilder).build("unknown topic", List.of());
+        verify(promptBuilder).build(eq("unknown topic"), eq(List.of()), anyList());
     }
 
     // -----------------------------------------------------------------------
@@ -104,10 +121,10 @@ class ChatServiceTest {
         RetrievedChunk c = new RetrievedChunk(chunkId, sourceId, "MEDIA", 3,
                 "content", 0.02, Map.of("filename", "lecture.mp3"));
         when(retrievalClient.retrieve(anyString())).thenReturn(new RetrieveResponse(List.of(c)));
-        when(promptBuilder.build(anyString(), anyList())).thenReturn("p");
+        when(promptBuilder.build(anyString(), anyList(), anyList())).thenReturn("p");
         when(textGenerationClient.complete("p")).thenReturn("answer");
 
-        com.v76.gems.orchestrator.ChatResponse response = chatService.chat(new ChatRequest("q"));
+        com.v76.gems.orchestrator.ChatResponse response = chatService.chat(UUID.randomUUID(), new ChatRequest("q", null));
 
         SourceCitation citation = response.sources().get(0);
         assertThat(citation.sourceType()).isEqualTo("MEDIA");
@@ -124,7 +141,7 @@ class ChatServiceTest {
         UUID chunkId = UUID.randomUUID();
         RetrievedChunk c = chunk(chunkId, UUID.randomUUID(), 1);
         when(retrievalClient.retrieve(anyString())).thenReturn(new RetrieveResponse(List.of(c)));
-        when(promptBuilder.build(anyString(), anyList())).thenReturn("stream-prompt");
+        when(promptBuilder.build(anyString(), anyList(), anyList())).thenReturn("stream-prompt");
         when(objectMapper.writeValueAsString(anyList())).thenReturn("[{\"chunkId\":\"" + chunkId + "\"}]");
 
         // Build a mock ChatResponse with a token
@@ -138,7 +155,7 @@ class ChatServiceTest {
         when(textGenerationClient.stream("stream-prompt"))
                 .thenReturn(Flux.just(aiResponse));
 
-        Flux<ServerSentEvent<String>> resultFlux = chatService.streamChat(new ChatRequest("stream me"));
+        Flux<ServerSentEvent<String>> resultFlux = chatService.streamChat(UUID.randomUUID(), new ChatRequest("stream me", null));
 
         StepVerifier.create(resultFlux)
                 .assertNext(event -> assertThat(event.event()).isEqualTo("sources"))
@@ -157,7 +174,7 @@ class ChatServiceTest {
     @Test
     void streamChat_nullRetrievalResponse_emitsEmptySourcesEvent() throws Exception {
         when(retrievalClient.retrieve(anyString())).thenReturn(null);
-        when(promptBuilder.build(anyString(), eq(List.of()))).thenReturn("prompt");
+        when(promptBuilder.build(anyString(), eq(List.of()), anyList())).thenReturn("prompt");
         when(objectMapper.writeValueAsString(eq(List.of()))).thenReturn("[]");
 
         org.springframework.ai.chat.model.ChatResponse aiResponse = mock(org.springframework.ai.chat.model.ChatResponse.class);
@@ -170,7 +187,7 @@ class ChatServiceTest {
         when(textGenerationClient.stream("prompt"))
                 .thenReturn(Flux.just(aiResponse));
 
-        Flux<ServerSentEvent<String>> resultFlux = chatService.streamChat(new ChatRequest("?"));
+        Flux<ServerSentEvent<String>> resultFlux = chatService.streamChat(UUID.randomUUID(), new ChatRequest("?", null));
 
         StepVerifier.create(resultFlux)
                 .assertNext(event -> {

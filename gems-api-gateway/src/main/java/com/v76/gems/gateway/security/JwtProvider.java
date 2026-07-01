@@ -24,18 +24,27 @@ public class JwtProvider {
     }
 
     public String generateToken(String username, String role) {
-        log.info("Generating JWT token for user: {} with role: {}", username, role);
+        return generateToken(null, username, role);
+    }
+
+    public String generateToken(java.util.UUID userId, String username, String role) {
+        log.info("Generating JWT token for user: {} (ID: {}) with role: {}", username, userId, role);
         Date now = new Date();
         Date expiry = new Date(now.getTime() + properties.expirationMs());
 
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .subject(username)
                 .claim("role", role)
                 .issuer(properties.issuer())
                 .issuedAt(now)
                 .expiration(expiry)
-                .signWith(signingKey)
-                .compact();
+                .signWith(signingKey);
+
+        if (userId != null) {
+            builder.claim("userId", userId.toString());
+        }
+
+        return builder.compact();
     }
 
     public Claims validateToken(String token) throws JwtException {

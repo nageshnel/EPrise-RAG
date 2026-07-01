@@ -44,3 +44,24 @@ values
     ('admin@gems.ai', crypt('admin123', gen_salt('bf', 10)), 'ADMIN', true),
     ('user@gems.ai', crypt('user123', gen_salt('bf', 10)), 'USER', true)
 on conflict (username) do nothing;
+
+create table if not exists chat_session (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references app_user(id) on delete cascade,
+    title text not null,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+create table if not exists chat_message (
+    id uuid primary key default gen_random_uuid(),
+    session_id uuid not null references chat_session(id) on delete cascade,
+    sender text not null,
+    content text not null,
+    citations jsonb,
+    created_at timestamptz not null default now()
+);
+
+create index if not exists chat_session_user_idx on chat_session(user_id);
+create index if not exists chat_message_session_idx on chat_message(session_id, created_at);
+

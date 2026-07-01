@@ -3,6 +3,7 @@ import { Text, View, ScrollView, TextInput, Pressable, ActivityIndicator, Platfo
 import { useAuthStore } from '../stores/authStore';
 import { useThemeStore, useThemeColors } from '../stores/themeStore';
 import { xhr_sse_stream, SseEventType } from '../utils/stream';
+import { authFetch } from '../utils/api';
 
 interface Message {
   id: string;
@@ -74,6 +75,13 @@ const MODELS: ModelOption[] = [
   { id: 'mistral-7b', label: 'Mistral 7B', badge: 'Self-Hosted' },
 ];
 
+export interface ChatSession {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export default function ChatPlayground() {
   const { user } = useAuthStore();
   const isAdmin = user?.role === 'ADMIN';
@@ -81,6 +89,9 @@ export default function ChatPlayground() {
 
   const mode = useThemeStore((state) => state.mode);
   const theme = useThemeColors();
+
+  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -97,6 +108,87 @@ export default function ChatPlayground() {
   const [systemPrompt, setSystemPrompt] = useState('You are an enterprise AI assistant. Answer questions using only the retrieved document context provided. Always cite your sources.');
   const [showSuggestions, setShowSuggestions] = useState(true);
   const scrollRef = useRef<ScrollView>(null);
+
+  const fetchSessions = async () => {
+    try {
+      const res = await authFetch('/chat/sessions');
+      if (res.ok) {
+        const data = await res.json();
+        setSessions(data || []);
+      }
+    } catch (err) {
+      console.error('Error fetching sessions', err);
+    }
+  };
+
+  const selectSession = async (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    setShowSuggestions(false);
+    try {
+      const res = await authFetch(`/chat/sessions/${sessionId}/messages`);
+      if (res.ok) {
+        const dbMessages = await res.json();
+        const formatted: Message[] = dbMessages.map((msg: any) => {
+          let parsedCitations: string[] = [];
+          try {
+            const rawSources = JSON.parse(msg.citations || '[]');
+            parsedCitations = rawSources.map((c: any) => {
+              const filename = c.metadata?.filename || c.metadata?.name || c.sourceType || 'doc';
+              const range = c.metadata?.range || `seq:${c.sequence}`;
+              return `${filename}:${range}`;
+            });
+          } catch (e) {
+            // Ignore parse errors
+          }
+          return {
+            id: msg.id,
+            sender: msg.sender,
+            text: msg.content,
+            citations: parsedCitations,
+          };
+        });
+        if (formatted.length === 0) {
+          setMessages([
+            {
+              id: '0',
+              sender: 'ASSISTANT',
+              text: "Ready for a new conversation! Ask anything about your documents.",
+            }
+          ]);
+        } else {
+          setMessages(formatted);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading session messages', err);
+    }
+  };
+
+  const deleteSession = async (sessionId: string) => {
+    try {
+      const res = await authFetch(`/chat/sessions/${sessionId}`, { method: 'DELETE' });
+      if (res.ok) {
+        fetchSessions();
+        if (activeSessionId === sessionId) {
+          setActiveSessionId(null);
+          setMessages([
+            {
+              id: '0',
+              sender: 'ASSISTANT',
+              text: `Hello ${userName}! I'm your GEMS RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
+            }
+          ]);
+          setShowSuggestions(true);
+        }
+      }
+    } catch (err) {
+      console.error('Error deleting session', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchSessions();
+  }, []);
 
   useEffect(() => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 100);
@@ -128,7 +220,7 @@ export default function ChatPlayground() {
 
     xhr_sse_stream(
       '/chat/stream',
-      { question: query },
+      { question: query, sessionId: activeSessionId },
       abortController.signal,
       (eventType: SseEventType, data: any) => {
         if (eventType === 'sources') {
@@ -149,7 +241,11 @@ export default function ChatPlayground() {
           ));
         } else if (eventType === 'done') {
           const latency = Date.now() - startTime;
-          // Approximate tokens count based on characters (e.g. 4 chars per token)
+          const returnedSessionId = data?.sessionId;
+          if (returnedSessionId) {
+            setActiveSessionId(returnedSessionId);
+            fetchSessions();
+          }
           setMessages(prev => prev.map(m =>
             m.id === assistantId ? {
               ...m,
@@ -183,6 +279,88 @@ export default function ChatPlayground() {
   return (
     <View style={{ flex: 1, flexDirection: 'row', backgroundColor: theme.bg.primary }}>
 
+      {/* ── CONVERSATIONS PANEL (left side) ── */}
+      {Platform.OS === 'web' && (
+        <View style={{
+          width: 250,
+          backgroundColor: theme.nav.bg,
+          borderRightWidth: 1, borderRightColor: theme.border.default,
+          padding: 16,
+          flexDirection: 'column',
+        }}>
+          <Pressable
+            onPress={() => {
+              setActiveSessionId(null);
+              setMessages([
+                {
+                  id: '0',
+                  sender: 'ASSISTANT',
+                  text: `Hello ${userName}! I'm your GEMS RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
+                }
+              ]);
+              setShowSuggestions(true);
+            }}
+            style={({ pressed }) => ({
+              paddingVertical: 10, paddingHorizontal: 12, borderRadius: 8,
+              backgroundColor: pressed ? 'rgba(124,58,237,0.8)' : theme.accent.primary,
+              alignItems: 'center', justifyContent: 'center',
+              marginBottom: 16,
+            })}
+          >
+            <Text style={{ color: '#fff', fontSize: 13, fontWeight: '700' }}>+ New Conversation</Text>
+          </Pressable>
+
+          <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+            <Text style={{ color: theme.text.muted, fontSize: 10, letterSpacing: 1.5, fontWeight: '700', marginBottom: 8 }}>
+              RECENT CHATS
+            </Text>
+            {sessions.length === 0 ? (
+              <Text style={{ color: theme.text.muted, fontSize: 11, fontStyle: 'italic', paddingVertical: 10 }}>No past conversations.</Text>
+            ) : (
+              sessions.map(s => {
+                const isActive = activeSessionId === s.id;
+                return (
+                  <View
+                    key={s.id}
+                    style={{
+                      flexDirection: 'row', alignItems: 'center',
+                      borderRadius: 8, marginBottom: 4,
+                      backgroundColor: isActive ? theme.nav.active : 'transparent',
+                      paddingHorizontal: 8,
+                    }}
+                  >
+                    <Pressable
+                      onPress={() => selectSession(s.id)}
+                      style={{
+                        flex: 1, paddingVertical: 8,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          color: isActive ? theme.text.primary : theme.text.secondary,
+                          fontSize: 12, fontWeight: isActive ? '600' : '500',
+                        }}
+                        numberOfLines={1}
+                      >
+                        💬 {s.title}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      onPress={() => deleteSession(s.id)}
+                      style={{
+                        padding: 4, opacity: 0.6,
+                      }}
+                    >
+                      <Text style={{ color: '#ef4444', fontSize: 12 }}>✕</Text>
+                    </Pressable>
+                  </View>
+                );
+              })
+            )}
+          </ScrollView>
+        </View>
+      )}
+
       {/* ── MAIN CHAT PANE ── */}
       <View style={{ flex: 1, flexDirection: 'column' }}>
 
@@ -206,6 +384,7 @@ export default function ChatPlayground() {
           </View>
           <Pressable
             onPress={() => {
+              setActiveSessionId(null);
               setMessages([{ id: '0', sender: 'ASSISTANT', text: "Session cleared. Ready for a new conversation!" }]);
               setShowSuggestions(true);
             }}

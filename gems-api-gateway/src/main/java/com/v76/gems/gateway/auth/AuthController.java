@@ -41,7 +41,7 @@ public class AuthController {
                 .map(user -> {
                     log.info("Login successful for user: {}", request.username());
                     return new AuthResponse(
-                            jwtProvider.generateToken(user.getUsername(), user.getRole()),
+                            jwtProvider.generateToken(user.getId(), user.getUsername(), user.getRole()),
                             jwtProvider.getExpirationMs());
                 })
                 .switchIfEmpty(Mono.defer(() -> {

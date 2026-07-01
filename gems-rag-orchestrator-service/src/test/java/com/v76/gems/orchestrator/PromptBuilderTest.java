@@ -100,4 +100,17 @@ class PromptBuilderTest {
         assertThat(prompt).containsIgnoringCase("enterprise RAG assistant");
         assertThat(prompt).containsIgnoringCase("context");
     }
+
+    @Test
+    void build_withHistory_includesHistoryInPrompt() {
+        List<ChatMessage> history = List.of(
+            new ChatMessage(UUID.randomUUID(), UUID.randomUUID(), "USER", "Hello", "[]", java.time.Instant.now()),
+            new ChatMessage(UUID.randomUUID(), UUID.randomUUID(), "ASSISTANT", "Hi there!", "[]", java.time.Instant.now())
+        );
+        String prompt = builder.build("How are you?", List.of(), history);
+
+        assertThat(prompt).contains("CONVERSATION HISTORY:");
+        assertThat(prompt).contains("USER: Hello");
+        assertThat(prompt).contains("ASSISTANT: Hi there!");
+    }
 }
