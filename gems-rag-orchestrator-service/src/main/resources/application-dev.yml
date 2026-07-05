@@ -15,3 +15,11 @@ grpc:
     retrieval-service:
       address: 'static://localhost:9083'
       negotiation-type: plaintext
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4317

@@ -28,3 +28,11 @@ spring:
           uri: http://localhost:8084
           predicates:
             - Path=/chat/**
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4317
