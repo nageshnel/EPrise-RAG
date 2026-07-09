@@ -25,6 +25,28 @@ spec:
               value: gems
             - name: POSTGRES_PASSWORD
               value: gems
+          livenessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - gems
+                - -d
+                - gems_ai
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - pg_isready
+                - -U
+                - gems
+                - -d
+                - gems_ai
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
           resources:
             requests:
               memory: "256Mi"

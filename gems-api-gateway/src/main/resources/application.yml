@@ -18,3 +18,9 @@ management:
     web:
       exposure:
         include: health,info,gateway,metrics
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
