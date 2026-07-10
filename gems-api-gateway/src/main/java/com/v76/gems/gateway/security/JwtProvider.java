@@ -32,20 +32,18 @@ public class JwtProvider {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + properties.expirationMs());
 
-        var builder = Jwts.builder()
+        return Jwts.builder()
                 .subject(username)
                 .claim("role", role)
+                .claim("userId", userId != null ? userId.toString() : null)
                 .issuer(properties.issuer())
                 .issuedAt(now)
                 .expiration(expiry)
-                .signWith(signingKey);
-
-        if (userId != null) {
-            builder.claim("userId", userId.toString());
-        }
-
-        return builder.compact();
+                .signWith(signingKey)
+                .compact();
     }
+
+
 
     public Claims validateToken(String token) throws JwtException {
         try {

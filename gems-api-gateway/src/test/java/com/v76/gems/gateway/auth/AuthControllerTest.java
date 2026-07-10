@@ -25,11 +25,15 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
-    @Mock AppUserRepository userRepository;
-    @Mock PasswordEncoder passwordEncoder;
-    @Mock JwtProvider jwtProvider;
+    @Mock
+    AppUserRepository userRepository;
+    @Mock
+    PasswordEncoder passwordEncoder;
+    @Mock
+    JwtProvider jwtProvider;
 
-    @InjectMocks AuthController authController;
+    @InjectMocks
+    AuthController authController;
 
     private AppUser enabledUser;
 
@@ -48,7 +52,8 @@ class AuthControllerTest {
     void login_validCredentials_returnsAuthResponse() {
         when(userRepository.findByUsername("alice")).thenReturn(Mono.just(enabledUser));
         when(passwordEncoder.matches("secret", "hashed-pw")).thenReturn(true);
-        when(jwtProvider.generateToken("alice", "USER")).thenReturn("jwt-token");
+        lenient().when(jwtProvider.generateToken("alice", "USER")).thenReturn("jwt-token");
+        lenient().when(jwtProvider.generateToken(enabledUser.getId(), "alice", "USER")).thenReturn("jwt-token");
         when(jwtProvider.getExpirationMs()).thenReturn(3_600_000L);
 
         LoginRequest request = new LoginRequest("alice", "secret");

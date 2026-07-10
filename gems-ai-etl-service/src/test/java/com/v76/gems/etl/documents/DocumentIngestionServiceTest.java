@@ -18,8 +18,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -40,7 +38,9 @@ class DocumentIngestionServiceTest {
     @Mock io.minio.MinioClient minioClient;
     @Mock com.v76.gems.common.config.MinioProperties minioProperties;
 
-    @InjectMocks DocumentIngestionService service;
+
+    @InjectMocks
+    DocumentIngestionService service;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -60,19 +60,20 @@ class DocumentIngestionServiceTest {
     @Test
     void ingest_validFile_publishesChunkEventsToKafka() throws IOException {
         MockMultipartFile file = sampleFile();
-        DocumentExtraction extraction = new DocumentExtraction("Extracted text", Map.of("contentType", "application/pdf"));
+        DocumentExtraction extraction = new DocumentExtraction("Extracted text",
+                Map.of("contentType", "application/pdf"));
         List<Chunk> chunks = List.of(
                 new Chunk(1, "chunk 1", Map.of()),
                 new Chunk(2, "chunk 2", Map.of()),
-                new Chunk(3, "chunk 3", Map.of())
-        );
+                new Chunk(3, "chunk 3", Map.of()));
 
         when(extractor.extract(file)).thenReturn(extraction);
         when(chunkingService.chunk(eq("Extracted text"), any())).thenReturn(chunks);
 
         service.ingest(file);
 
-        verify(kafkaTemplate, times(3)).send(eq(Topics.DOCUMENT_CHUNK_CREATED), anyString(), any(ChunkCreatedEvent.class));
+        verify(kafkaTemplate, times(3)).send(eq(Topics.DOCUMENT_CHUNK_CREATED), anyString(),
+                any(ChunkCreatedEvent.class));
     }
 
     @Test
@@ -159,7 +160,7 @@ class DocumentIngestionServiceTest {
     }
 
     @Test
-    void ingest_nativeTextWithEmbeddedImages_performsParallelOcrAndPersistsImagesToMinio() throws IOException {
+    void ingest_nativeTextWithEmbeddedImages_performsParallelOcrAndPersistsImagesToMinio() throws Exception {
         MockMultipartFile file = sampleFile();
         byte[] img1 = "img1".getBytes();
         byte[] img2 = "img2".getBytes();
@@ -178,8 +179,9 @@ class DocumentIngestionServiceTest {
 
         service.ingest(file);
 
-        // Verify images were uploaded to MinIO
-        verify(minioClient, times(2)).putObject(any(io.minio.PutObjectArgs.class));
+        // Verify images were uploaded to MinIO (1 original file + 2 embedded images)
+        verify(minioClient, times(3)).putObject(any(io.minio.PutObjectArgs.class));
+
         
         // Verify final concatenated text contains OCR text and image paths
         String finalText = textCaptor.getValue();
