@@ -2,13 +2,15 @@ package com.v76.gems.etl.documents;
 
 import com.v76.gems.common.chunking.Chunk;
 import com.v76.gems.common.chunking.ChunkingService;
+import com.v76.gems.common.config.MinioProperties;
+import com.v76.gems.etl.extraction.DocumentClassifier;
 import com.v76.gems.etl.extraction.DocumentExtraction;
 import com.v76.gems.etl.extraction.DocumentExtractor;
-import com.v76.gems.etl.extraction.DocumentClassifier;
 import com.v76.gems.etl.extraction.OcrClient;
 import com.v76.gems.etl.extraction.ProcessingStrategy;
 import com.v76.gems.events.ChunkCreatedEvent;
 import com.v76.gems.events.Topics;
+import io.minio.MinioClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +20,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -35,12 +39,10 @@ class DocumentIngestionServiceTest {
     @Mock OcrClient ocrClient;
     @Mock ChunkingService chunkingService;
     @Mock KafkaTemplate<String, ChunkCreatedEvent> kafkaTemplate;
-    @Mock io.minio.MinioClient minioClient;
-    @Mock com.v76.gems.common.config.MinioProperties minioProperties;
+    @Mock MinioClient minioClient;
+    @Mock MinioProperties minioProperties;
 
-
-    @InjectMocks
-    DocumentIngestionService service;
+    @InjectMocks DocumentIngestionService service;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -60,20 +62,19 @@ class DocumentIngestionServiceTest {
     @Test
     void ingest_validFile_publishesChunkEventsToKafka() throws IOException {
         MockMultipartFile file = sampleFile();
-        DocumentExtraction extraction = new DocumentExtraction("Extracted text",
-                Map.of("contentType", "application/pdf"));
+        DocumentExtraction extraction = new DocumentExtraction("Extracted text", Map.of("contentType", "application/pdf"));
         List<Chunk> chunks = List.of(
                 new Chunk(1, "chunk 1", Map.of()),
                 new Chunk(2, "chunk 2", Map.of()),
-                new Chunk(3, "chunk 3", Map.of()));
+                new Chunk(3, "chunk 3", Map.of())
+        );
 
         when(extractor.extract(file)).thenReturn(extraction);
         when(chunkingService.chunk(eq("Extracted text"), any())).thenReturn(chunks);
 
         service.ingest(file);
 
-        verify(kafkaTemplate, times(3)).send(eq(Topics.DOCUMENT_CHUNK_CREATED), anyString(),
-                any(ChunkCreatedEvent.class));
+        verify(kafkaTemplate, times(3)).send(eq(Topics.DOCUMENT_CHUNK_CREATED), anyString(), any(ChunkCreatedEvent.class));
     }
 
     @Test
@@ -151,7 +152,7 @@ class DocumentIngestionServiceTest {
 
     @Test
     void ingest_extractorThrowsIOException_propagates() throws IOException {
-        MockMultipartFile file = sampleFile();
+        MultipartFile file = mock(MultipartFile.class);
         when(extractor.extract(file)).thenThrow(new IOException("parse failure"));
 
         assertThatThrownBy(() -> service.ingest(file))
@@ -182,7 +183,6 @@ class DocumentIngestionServiceTest {
         // Verify images were uploaded to MinIO (1 original file + 2 embedded images)
         verify(minioClient, times(3)).putObject(any(io.minio.PutObjectArgs.class));
 
-        
         // Verify final concatenated text contains OCR text and image paths
         String finalText = textCaptor.getValue();
         assertThat(finalText).contains("Native text content.");
