@@ -39,10 +39,22 @@ To maintain a structured and traceable record of changes:
 
 ## Build
 
+### Compiling local code
 ```powershell
 cd "D:\AI info\v76-gems\airag-poc"
 mvn clean verify
 ```
+
+### Creating Container Images
+Build OCI-compliant docker container images for all 7 microservices using buildpacks:
+```powershell
+# Default build: compiles modules and tags as airag/<service-name>:0.1.0
+.\build-images.bat
+
+# Custom prefix and tag:
+.\build-images.bat "my-private-registry.io/airag/" "v1.0.0"
+```
+
 
 ## Run local infrastructure
 
