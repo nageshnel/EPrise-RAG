@@ -9,6 +9,7 @@ echo ===================================================
 set "DEFAULT_PREFIX=airag/"
 set "DEFAULT_TAG=0.1.0"
 
+
 :: Read input variables
 set "REGISTRY_PREFIX=%~1"
 if "%REGISTRY_PREFIX%"=="" (
@@ -20,10 +21,11 @@ if "%IMAGE_TAG%"=="" (
     set "IMAGE_TAG=%DEFAULT_TAG%"
 )
 
-echo Registry Prefix: %REGISTRY_PREFIX%
-echo Container Tag:   %IMAGE_TAG%
+echo Step 1: Clearing background daemon locks...
+call mvnd --stop
+
 echo.
-echo Step 1: Compiling dependencies...
+echo Step 2: Compiling and caching all dependencies...
 call mvnd clean install -DskipTests
 if %ERRORLEVEL% neq 0 (
     echo [ERROR] Maven build failed! Aborting image creation.
@@ -34,7 +36,7 @@ if %ERRORLEVEL% neq 0 (
 set "SERVICES=gems-api-gateway gems-ai-etl-service gems-media-service gems-embedding-service gems-retrieval-service gems-rag-orchestrator-service gems-ocr-service"
 
 echo.
-echo Step 2: Generating OCI Container Images via Buildpacks...
+echo Step 3: Generating OCI Container Images via Buildpacks...
 for %%s in (%SERVICES%) do (
     echo.
     echo ---------------------------------------------------
@@ -43,9 +45,10 @@ for %%s in (%SERVICES%) do (
     call mvnd spring-boot:build-image -pl %%s -Dspring-boot.build-image.imageName=%REGISTRY_PREFIX%%%s:%IMAGE_TAG% -DskipTests
     if !ERRORLEVEL! neq 0 (
         echo [ERROR] Failed to build image for %%s
-        exit /b !ERRORLEVEL%
+        exit /b !ERRORLEVEL!
     )
 )
+
 
 echo.
 echo ===================================================
