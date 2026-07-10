@@ -25,119 +25,119 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
 
-    @Mock
-    AppUserRepository userRepository;
-    @Mock
-    PasswordEncoder passwordEncoder;
-    @Mock
-    JwtProvider jwtProvider;
+        @Mock
+        AppUserRepository userRepository;
+        @Mock
+        PasswordEncoder passwordEncoder;
+        @Mock
+        JwtProvider jwtProvider;
 
-    @InjectMocks
-    AuthController authController;
+        @InjectMocks
+        AuthController authController;
 
-    private AppUser enabledUser;
+        private AppUser enabledUser;
 
-    @BeforeEach
-    void setUp() {
-        enabledUser = new AppUser("alice", "hashed-pw", "USER");
-        enabledUser.setId(UUID.randomUUID());
-        enabledUser.setEnabled(true);
-    }
+        @BeforeEach
+        void setUp() {
+                enabledUser = new AppUser("alice", "hashed-pw", "USER");
+                enabledUser.setId(UUID.randomUUID());
+                enabledUser.setEnabled(true);
+        }
 
-    // -----------------------------------------------------------------------
-    // login
-    // -----------------------------------------------------------------------
+        // -----------------------------------------------------------------------
+        // login
+        // -----------------------------------------------------------------------
 
-    @Test
-    void login_validCredentials_returnsAuthResponse() {
-        when(userRepository.findByUsername("alice")).thenReturn(Mono.just(enabledUser));
-        when(passwordEncoder.matches("secret", "hashed-pw")).thenReturn(true);
-        lenient().when(jwtProvider.generateToken("alice", "USER")).thenReturn("jwt-token");
-        lenient().when(jwtProvider.generateToken(enabledUser.getId(), "alice", "USER")).thenReturn("jwt-token");
-        when(jwtProvider.getExpirationMs()).thenReturn(3_600_000L);
+        @Test
+        void login_validCredentials_returnsAuthResponse() {
+                when(userRepository.findByUsername("alice")).thenReturn(Mono.just(enabledUser));
+                when(passwordEncoder.matches("secret", "hashed-pw")).thenReturn(true);
+                lenient().when(jwtProvider.generateToken(enabledUser.getId(), "alice", "USER")).thenReturn("jwt-token");
+                when(jwtProvider.getExpirationMs()).thenReturn(3_600_000L);
 
-        LoginRequest request = new LoginRequest("alice", "secret");
+                LoginRequest request = new LoginRequest("alice", "secret");
 
-        StepVerifier.create(authController.login(request))
-                .assertNext(response -> {
-                    assertThat(response.token()).isEqualTo("jwt-token");
-                    assertThat(response.expiresIn()).isEqualTo(3_600_000L);
-                })
-                .verifyComplete();
-    }
+                StepVerifier.create(authController.login(request))
+                                .assertNext(response -> {
+                                        assertThat(response.token()).isEqualTo("jwt-token");
+                                        assertThat(response.expiresIn()).isEqualTo(3_600_000L);
+                                })
+                                .verifyComplete();
+        }
 
-    @Test
-    void login_userNotFound_returnsUnauthorized() {
-        when(userRepository.findByUsername("unknown")).thenReturn(Mono.empty());
+        @Test
+        void login_userNotFound_returnsUnauthorized() {
+                when(userRepository.findByUsername("unknown")).thenReturn(Mono.empty());
 
-        LoginRequest request = new LoginRequest("unknown", "secret");
+                LoginRequest request = new LoginRequest("unknown", "secret");
 
-        StepVerifier.create(authController.login(request))
-                .expectErrorSatisfies(ex -> {
-                    assertThat(ex).isInstanceOf(ResponseStatusException.class);
-                    assertThat(((ResponseStatusException) ex).getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-                })
-                .verify();
-    }
+                StepVerifier.create(authController.login(request))
+                                .expectErrorSatisfies(ex -> {
+                                        assertThat(ex).isInstanceOf(ResponseStatusException.class);
+                                        assertThat(((ResponseStatusException) ex).getStatusCode())
+                                                        .isEqualTo(HttpStatus.UNAUTHORIZED);
+                                })
+                                .verify();
+        }
 
-    @Test
-    void login_disabledUser_returnsUnauthorized() {
-        enabledUser.setEnabled(false);
-        when(userRepository.findByUsername("alice")).thenReturn(Mono.just(enabledUser));
+        @Test
+        void login_disabledUser_returnsUnauthorized() {
+                enabledUser.setEnabled(false);
+                when(userRepository.findByUsername("alice")).thenReturn(Mono.just(enabledUser));
 
-        LoginRequest request = new LoginRequest("alice", "secret");
+                LoginRequest request = new LoginRequest("alice", "secret");
 
-        StepVerifier.create(authController.login(request))
-                .expectErrorMatches(ex -> ex instanceof ResponseStatusException rse
-                        && rse.getStatusCode() == HttpStatus.UNAUTHORIZED)
-                .verify();
-    }
+                StepVerifier.create(authController.login(request))
+                                .expectErrorMatches(ex -> ex instanceof ResponseStatusException rse
+                                                && rse.getStatusCode() == HttpStatus.UNAUTHORIZED)
+                                .verify();
+        }
 
-    @Test
-    void login_wrongPassword_returnsUnauthorized() {
-        when(userRepository.findByUsername("alice")).thenReturn(Mono.just(enabledUser));
-        when(passwordEncoder.matches("wrong", "hashed-pw")).thenReturn(false);
+        @Test
+        void login_wrongPassword_returnsUnauthorized() {
+                when(userRepository.findByUsername("alice")).thenReturn(Mono.just(enabledUser));
+                when(passwordEncoder.matches("wrong", "hashed-pw")).thenReturn(false);
 
-        LoginRequest request = new LoginRequest("alice", "wrong");
+                LoginRequest request = new LoginRequest("alice", "wrong");
 
-        StepVerifier.create(authController.login(request))
-                .expectErrorMatches(ex -> ex instanceof ResponseStatusException rse
-                        && rse.getStatusCode() == HttpStatus.UNAUTHORIZED)
-                .verify();
-    }
+                StepVerifier.create(authController.login(request))
+                                .expectErrorMatches(ex -> ex instanceof ResponseStatusException rse
+                                                && rse.getStatusCode() == HttpStatus.UNAUTHORIZED)
+                                .verify();
+        }
 
-    // -----------------------------------------------------------------------
-    // register
-    // -----------------------------------------------------------------------
+        // -----------------------------------------------------------------------
+        // register
+        // -----------------------------------------------------------------------
 
-    @Test
-    void register_newUser_savesAndReturnsResponse() {
-        when(userRepository.findByUsername("newuser")).thenReturn(Mono.empty());
-        when(passwordEncoder.encode("pass")).thenReturn("enc-pass");
+        @Test
+        void register_newUser_savesAndReturnsResponse() {
+                when(userRepository.findByUsername("newuser")).thenReturn(Mono.empty());
+                when(passwordEncoder.encode("pass")).thenReturn("enc-pass");
 
-        AppUser saved = new AppUser("newuser", "enc-pass", "USER");
-        saved.setId(UUID.randomUUID());
-        when(userRepository.save(any(AppUser.class))).thenReturn(Mono.just(saved));
+                AppUser saved = new AppUser("newuser", "enc-pass", "USER");
+                saved.setId(UUID.randomUUID());
+                when(userRepository.save(any(AppUser.class))).thenReturn(Mono.just(saved));
 
-        LoginRequest request = new LoginRequest("newuser", "pass");
+                LoginRequest request = new LoginRequest("newuser", "pass");
 
-        StepVerifier.create(authController.register(request))
-                .assertNext(response -> {
-                    assertThat(response.username()).isEqualTo("newuser");
-                    assertThat(response.id()).isEqualTo(saved.getId());
-                })
-                .verifyComplete();
-    }
+                StepVerifier.create(authController.register(request))
+                                .assertNext(response -> {
+                                        assertThat(response.username()).isEqualTo("newuser");
+                                        assertThat(response.id()).isEqualTo(saved.getId());
+                                })
+                                .verifyComplete();
+        }
 
-    @Test
-    void register_existingUsername_returnsConflict() {
-        when(userRepository.findByUsername("alice")).thenReturn(Mono.just(enabledUser));
+        @Test
+        void register_existingUsername_returnsConflict() {
+                when(userRepository.findByUsername("alice")).thenReturn(Mono.just(enabledUser));
 
-        LoginRequest request = new LoginRequest("alice", "anypass");
+                LoginRequest request = new LoginRequest("alice", "anypass");
 
-        StepVerifier.create(authController.register(request))
-                .expectErrorMatches(ex -> ex instanceof ResponseStatusException rse
-                        && rse.getStatusCode() == HttpStatus.CONFLICT)
-                .verify();
-    }
+                StepVerifier.create(authController.register(request))
+                                .expectErrorMatches(ex -> ex instanceof ResponseStatusException rse
+                                                && rse.getStatusCode() == HttpStatus.CONFLICT)
+                                .verify();
+        }
 }
