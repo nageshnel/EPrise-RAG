@@ -57,7 +57,7 @@ for %%s in (%SERVICES%) do (
 )
 echo.
 echo To push these to a remote container registry, run:
-echo   docker login [registry-url]
-for %%s in (%SERVICES%) do (
-    echo   docker push %REGISTRY_PREFIX%%%s:%IMAGE_TAG%
-)
+@REM echo   docker login [registry-url]
+@REM for %%s in (%SERVICES%) do (
+@REM     echo   docker push %REGISTRY_PREFIX%%%s:%IMAGE_TAG%
+@REM )
