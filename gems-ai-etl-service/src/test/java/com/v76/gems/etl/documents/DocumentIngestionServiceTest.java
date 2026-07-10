@@ -20,8 +20,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -34,15 +32,23 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 class DocumentIngestionServiceTest {
 
-    @Mock DocumentExtractor extractor;
-    @Mock DocumentClassifier classifier;
-    @Mock OcrClient ocrClient;
-    @Mock ChunkingService chunkingService;
-    @Mock KafkaTemplate<String, ChunkCreatedEvent> kafkaTemplate;
-    @Mock MinioClient minioClient;
-    @Mock MinioProperties minioProperties;
+    @Mock
+    DocumentExtractor extractor;
+    @Mock
+    DocumentClassifier classifier;
+    @Mock
+    OcrClient ocrClient;
+    @Mock
+    ChunkingService chunkingService;
+    @Mock
+    KafkaTemplate<String, ChunkCreatedEvent> kafkaTemplate;
+    @Mock
+    MinioClient minioClient;
+    @Mock
+    MinioProperties minioProperties;
 
-    @InjectMocks DocumentIngestionService service;
+    @InjectMocks
+    DocumentIngestionService service;
 
     @BeforeEach
     void setUp() throws Exception {
@@ -62,19 +68,20 @@ class DocumentIngestionServiceTest {
     @Test
     void ingest_validFile_publishesChunkEventsToKafka() throws IOException {
         MockMultipartFile file = sampleFile();
-        DocumentExtraction extraction = new DocumentExtraction("Extracted text", Map.of("contentType", "application/pdf"));
+        DocumentExtraction extraction = new DocumentExtraction("Extracted text",
+                Map.of("contentType", "application/pdf"));
         List<Chunk> chunks = List.of(
                 new Chunk(1, "chunk 1", Map.of()),
                 new Chunk(2, "chunk 2", Map.of()),
-                new Chunk(3, "chunk 3", Map.of())
-        );
+                new Chunk(3, "chunk 3", Map.of()));
 
         when(extractor.extract(file)).thenReturn(extraction);
         when(chunkingService.chunk(eq("Extracted text"), any())).thenReturn(chunks);
 
         service.ingest(file);
 
-        verify(kafkaTemplate, times(3)).send(eq(Topics.DOCUMENT_CHUNK_CREATED), anyString(), any(ChunkCreatedEvent.class));
+        verify(kafkaTemplate, times(3)).send(eq(Topics.DOCUMENT_CHUNK_CREATED), anyString(),
+                any(ChunkCreatedEvent.class));
     }
 
     @Test
@@ -152,7 +159,7 @@ class DocumentIngestionServiceTest {
 
     @Test
     void ingest_extractorThrowsIOException_propagates() throws IOException {
-        MultipartFile file = mock(MultipartFile.class);
+        MockMultipartFile file = sampleFile();
         when(extractor.extract(file)).thenThrow(new IOException("parse failure"));
 
         assertThatThrownBy(() -> service.ingest(file))
@@ -167,8 +174,7 @@ class DocumentIngestionServiceTest {
         byte[] img2 = "img2".getBytes();
         DocumentExtraction extraction = new DocumentExtraction(
                 "Native text content.",
-                Map.of("embeddedImages", List.of(img1, img2))
-        );
+                Map.of("embeddedImages", List.of(img1, img2)));
 
         when(extractor.extract(file)).thenReturn(extraction);
         when(classifier.classify(any(), any(), any())).thenReturn(ProcessingStrategy.NATIVE_TEXT);
@@ -176,7 +182,8 @@ class DocumentIngestionServiceTest {
         when(ocrClient.extractText(eq(img2), anyString(), anyString())).thenReturn("OCR Text 2");
 
         ArgumentCaptor<String> textCaptor = ArgumentCaptor.forClass(String.class);
-        when(chunkingService.chunk(textCaptor.capture(), any())).thenReturn(List.of(new Chunk(1, "chunk text", Map.of())));
+        when(chunkingService.chunk(textCaptor.capture(), any()))
+                .thenReturn(List.of(new Chunk(1, "chunk text", Map.of())));
 
         service.ingest(file);
 
