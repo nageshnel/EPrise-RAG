@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: airag-model-api-secrets
+  namespace: airag
+type: Opaque
+stringData:
+  OPENAI_API_KEY: YOUR_OPENROUTER_API_KEY_HERE
+  GATEWAY_API_KEY: replace-me
+  JWT_SECRET: replace-me-with-a-secure-256-bit-key
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: airag-model-api-config
+  namespace: airag
+data:
+  OPENAI_BASE_URL: https://openrouter.ai/api
+  SPRING_AI_EMBEDDING_MODEL: openai/text-embedding-3-small
+  SPRING_AI_CHAT_MODEL: openrouter/free
+  EMBEDDING_DIMENSIONS: "1536"
+  RETRIEVAL_SERVICE_URL: http://eprise-retrieval-service:8083
