@@ -2,7 +2,7 @@
 
 Java-only multi-service RAG POC based on `AIRAG-Architecture-POC.pdf`.
 
-## Confirmed architecture
+## Libraries & Frameworks
 
 - Spring Boot 3.5 multi-module Java 21 project.
 - Spring Security is enabled at the API Gateway and internal services.
