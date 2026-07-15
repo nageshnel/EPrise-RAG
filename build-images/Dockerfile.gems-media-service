@@ -1,0 +1,20 @@
+# Eclipse Temurin Java 21 JRE runtime environment on Alpine Linux
+FROM eclipse-temurin:21-jre-alpine
+
+# Set the working directory
+WORKDIR /app
+
+# Run as non-root user for security compliance
+RUN addgroup -S spring && adduser -S spring -G spring
+USER spring:spring
+
+# Copy the built jar from the module target folder
+# Note: This Dockerfile expects the project root to be the build context.
+# Command: docker build -t airag/gems-media-service:0.1.0 -f build-images/Dockerfile.gems-media-service .
+COPY gems-media-service/target/gems-media-service-0.1.0-SNAPSHOT.jar app.jar
+
+# Expose HTTP port
+EXPOSE 8085
+
+# Configure JVM memory tuning
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "app.jar"]
