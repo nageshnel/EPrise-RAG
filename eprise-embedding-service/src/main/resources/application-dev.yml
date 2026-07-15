@@ -1,0 +1,22 @@
+spring:
+  devtools:
+    restart:
+      enabled: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/eprise_ai
+    username: eprise
+    password: eprise
+  kafka:
+    bootstrap-servers: localhost:9092
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: false
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4317

@@ -1,0 +1,36 @@
+spring:
+  devtools:
+    restart:
+      enabled: false
+  r2dbc:
+    url: ${SPRING_R2DBC_URL:r2dbc:postgresql://postgres:5432/eprise_ai}
+    username: ${SPRING_R2DBC_USERNAME:eprise}
+    password: ${SPRING_R2DBC_PASSWORD:eprise}
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              enabled: true
+              lower-case-service-id: true
+      routes:
+        - id: etl-documents
+          uri: lb://eprise-ai-etl-service
+          predicates:
+            - Path=/documents/**
+        - id: media
+          uri: lb://eprise-media-service
+          predicates:
+            - Path=/media/**
+        - id: retrieval
+          uri: lb://eprise-retrieval-service
+          predicates:
+            - Path=/retrieve/**
+        - id: orchestrator-chat
+          uri: lb://eprise-rag-orchestrator-service
+          predicates:
+            - Path=/chat/**

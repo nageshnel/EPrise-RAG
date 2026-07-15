@@ -2,22 +2,22 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.v76.gems</groupId>
+    <groupId>com.v76.eprise</groupId>
     <artifactId>airag-poc</artifactId>
     <version>0.1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>AIRAG Architecture Gems POC</name>
+    <name>AIRAG Architecture EPrise POC</name>
     <modules>
-        <module>gems-ai-common</module>
-        <module>gems-shared-events</module>
-        <module>gems-api-gateway</module>
-        <module>gems-ai-etl-service</module>
-        <module>gems-media-service</module>
-        <module>gems-embedding-service</module>
-        <module>gems-retrieval-service</module>
-        <module>gems-rag-orchestrator-service</module>
-        <module>gems-ocr-service</module>
-        <module>gems-grpc-common</module>
+        <module>eprise-ai-common</module>
+        <module>eprise-shared-events</module>
+        <module>eprise-api-gateway</module>
+        <module>eprise-ai-etl-service</module>
+        <module>eprise-media-service</module>
+        <module>eprise-embedding-service</module>
+        <module>eprise-retrieval-service</module>
+        <module>eprise-rag-orchestrator-service</module>
+        <module>eprise-ocr-service</module>
+        <module>eprise-grpc-common</module>
     </modules>
     <properties>
         <java.version>21</java.version>

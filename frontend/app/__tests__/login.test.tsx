@@ -30,7 +30,7 @@ describe('LoginScreen', () => {
   it('should render username, password fields and sign in button', () => {
     const { getByPlaceholderText, getAllByText } = render(<LoginScreen />);
 
-    expect(getByPlaceholderText('admin@gems.ai')).toBeTruthy();
+    expect(getByPlaceholderText('admin@eprise.ai')).toBeTruthy();
     expect(getByPlaceholderText('Enter password')).toBeTruthy();
     expect(getAllByText('Sign In').length).toBe(2);
   });
@@ -38,18 +38,18 @@ describe('LoginScreen', () => {
   it('should trigger login request when form is submitted with values', async () => {
     const { getByPlaceholderText, getAllByText } = render(<LoginScreen />);
 
-    const emailInput = getByPlaceholderText('admin@gems.ai');
+    const emailInput = getByPlaceholderText('admin@eprise.ai');
     const passwordInput = getByPlaceholderText('Enter password');
     const submitButton = getAllByText('Sign In')[1];
 
-    fireEvent.changeText(emailInput, 'test@gems.ai');
+    fireEvent.changeText(emailInput, 'test@eprise.ai');
     fireEvent.changeText(passwordInput, 'mypassword');
     
     await act(async () => {
       fireEvent.press(submitButton);
     });
 
-    expect(loginMock).toHaveBeenCalledWith('test@gems.ai', 'mypassword');
+    expect(loginMock).toHaveBeenCalledWith('test@eprise.ai', 'mypassword');
   });
 
   it('should display error alert if auth error is returned', () => {
@@ -80,10 +80,10 @@ describe('LoginScreen', () => {
     const adminDemoCard = getByText('Full platform access');
     fireEvent.press(adminDemoCard);
 
-    const emailInput = getByPlaceholderText('admin@gems.ai');
+    const emailInput = getByPlaceholderText('admin@eprise.ai');
     const passwordInput = getByPlaceholderText('Enter password');
 
-    expect(emailInput.props.value).toBe('admin@gems.ai');
+    expect(emailInput.props.value).toBe('admin@eprise.ai');
     expect(passwordInput.props.value).toBe('admin123');
   });
 
@@ -93,10 +93,10 @@ describe('LoginScreen', () => {
     const userDemoCard = getByText('Chat inference only');
     fireEvent.press(userDemoCard);
 
-    const emailInput = getByPlaceholderText('admin@gems.ai');
+    const emailInput = getByPlaceholderText('admin@eprise.ai');
     const passwordInput = getByPlaceholderText('Enter password');
 
-    expect(emailInput.props.value).toBe('user@gems.ai');
+    expect(emailInput.props.value).toBe('user@eprise.ai');
     expect(passwordInput.props.value).toBe('user123');
   });
 });

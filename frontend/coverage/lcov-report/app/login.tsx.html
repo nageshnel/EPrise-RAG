@@ -721,10 +721,10 @@ export default function LoginScreen() {
 &nbsp;
   const handleQuickLogin = (role: 'admin' | 'user') =&gt; {
     if (role === 'admin') {
-      setEmail('admin@gems.ai');
+      setEmail('admin@eprise.ai');
       setPassword('admin123');
     } else {
-      setEmail('user@gems.ai');
+      setEmail('user@eprise.ai');
       setPassword('user123');
     }
   };
@@ -781,7 +781,7 @@ export default function LoginScreen() {
             color: theme.text.primary, fontWeight: '800', fontSize: 28,
             letterSpacing: -0.5, textAlign: 'center',
           }}&gt;
-            GEMS&lt;Text style={{ color: theme.accent.primary }}&gt;.&lt;/Text&gt;AIRAG
+            EPRISE&lt;Text style={{ color: theme.accent.primary }}&gt;.&lt;/Text&gt;AIRAG
           &lt;/Text&gt;
           &lt;Text style={{
             color: theme.text.secondary, fontSize: 12, letterSpacing: 3,
@@ -848,7 +848,7 @@ export default function LoginScreen() {
               &lt;TextInput
                 value={email}
                 onChangeText={setEmail}
-                placeholder="admin@gems.ai"
+                placeholder="admin@eprise.ai"
                 placeholderTextColor={theme.text.muted}
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -964,7 +964,7 @@ export default function LoginScreen() {
                   &lt;Text style={{ color: theme.accent.primary, fontSize: 9, fontWeight: '700' }}&gt;ADMIN&lt;/Text&gt;
                 &lt;/View&gt;
               &lt;/View&gt;
-              &lt;Text style={{ color: theme.text.primary, fontSize: 11, fontWeight: '600' }}&gt;admin@gems.ai&lt;/Text&gt;
+              &lt;Text style={{ color: theme.text.primary, fontSize: 11, fontWeight: '600' }}&gt;admin@eprise.ai&lt;/Text&gt;
               &lt;Text style={{ color: theme.text.secondary, fontSize: 10, marginTop: 2 }}&gt;Full platform access&lt;/Text&gt;
               &lt;Text style={{ color: theme.text.muted, fontSize: 10, marginTop: 8, fontFamily: 'monospace' }}&gt;
                 pw: admin123
@@ -998,7 +998,7 @@ export default function LoginScreen() {
                   &lt;Text style={{ color: mode === 'dark' ? '#60a5fa' : <span class="branch-1 cbranch-no" title="branch not covered" >'#2563eb',</span> fontSize: 9, fontWeight: '700' }}&gt;USER&lt;/Text&gt;
                 &lt;/View&gt;
               &lt;/View&gt;
-              &lt;Text style={{ color: theme.text.primary, fontSize: 11, fontWeight: '600' }}&gt;user@gems.ai&lt;/Text&gt;
+              &lt;Text style={{ color: theme.text.primary, fontSize: 11, fontWeight: '600' }}&gt;user@eprise.ai&lt;/Text&gt;
               &lt;Text style={{ color: theme.text.secondary, fontSize: 10, marginTop: 2 }}&gt;Chat inference only&lt;/Text&gt;
               &lt;Text style={{ color: theme.text.muted, fontSize: 10, marginTop: 8, fontFamily: 'monospace' }}&gt;
                 pw: user123
@@ -1010,7 +1010,7 @@ export default function LoginScreen() {
         {/* Footer */}
         &lt;View style={{ marginTop: 40, alignItems: 'center' }}&gt;
           &lt;Text style={{ color: theme.text.muted, fontSize: 10 }}&gt;
-            GEMS AIRAG Platform · v0.1.0-beta · © 2026
+            EPRISE AIRAG Platform · v0.1.0-beta · © 2026
           &lt;/Text&gt;
         &lt;/View&gt;
       &lt;/ScrollView&gt;

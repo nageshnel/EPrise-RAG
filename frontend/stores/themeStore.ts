@@ -11,7 +11,7 @@ interface ThemeState {
 function saveTheme(mode: 'light' | 'dark') {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem('gems_theme_mode', mode);
+      window.localStorage.setItem('eprise_theme_mode', mode);
     }
   } catch { /* SSR / RN native guard */ }
 }
@@ -19,7 +19,7 @@ function saveTheme(mode: 'light' | 'dark') {
 function loadTheme(): 'light' | 'dark' | null {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = window.localStorage.getItem('gems_theme_mode');
+      const saved = window.localStorage.getItem('eprise_theme_mode');
       if (saved === 'light' || saved === 'dark') return saved;
     }
   } catch { /* ignore */ }

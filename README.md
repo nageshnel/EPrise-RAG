@@ -1,4 +1,4 @@
-# AIRAG Architecture Gems POC
+# AIRAG Architecture EPrise POC
 
 Java-only multi-service RAG POC based on `AIRAG-Architecture-POC.pdf`.
 
@@ -19,14 +19,14 @@ Java-only multi-service RAG POC based on `AIRAG-Architecture-POC.pdf`.
 
 ```text
 airag-poc
-├── gems-api-gateway
-├── gems-ai-common
-├── gems-shared-events
-├── gems-ai-etl-service
-├── gems-media-service
-├── gems-embedding-service
-├── gems-retrieval-service
-├── gems-rag-orchestrator-service
+├── eprise-api-gateway
+├── eprise-ai-common
+├── eprise-shared-events
+├── eprise-ai-etl-service
+├── eprise-media-service
+├── eprise-embedding-service
+├── eprise-retrieval-service
+├── eprise-rag-orchestrator-service
 ├── infrastructure
 └── docs
 ```
@@ -41,7 +41,7 @@ To maintain a structured and traceable record of changes:
 
 ### Compiling local code
 ```powershell
-cd "D:\AI info\v76-gems\airag-poc"
+cd "D:\AI info\v76-eprise\airag-poc"
 mvn clean verify
 ```
 
@@ -65,7 +65,7 @@ docker compose -f infrastructure\docker-compose.yml up -d
 ## Deploy to Kubernetes
 
 ```powershell
-cd "D:\AI info\v76-gems\airag-poc\infrastructure\kubernetes"
+cd "D:\AI info\v76-eprise\airag-poc\infrastructure\kubernetes"
 kubectl apply -f namespace.yaml
 kubectl apply -f rbac-discovery.yaml
 kubectl apply -f config.yaml

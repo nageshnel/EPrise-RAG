@@ -966,7 +966,7 @@ export default function Settings() {
     <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof window !== 'undefined' &amp;&amp; window.localStorage) {
       const stored: Record&lt;string, string&gt; = {};
       Object.keys(DEFAULTS).forEach(k =&gt; {
-        const v = window.localStorage.getItem(`gems_${k}`);
+        const v = window.localStorage.getItem(`eprise_${k}`);
         if (v) stored[k] = v;
       });
       if (Object.keys(stored).length) setValues(v =&gt; ({ ...v, ...stored }));
@@ -975,7 +975,7 @@ export default function Settings() {
 &nbsp;
   const handleSave = () =&gt; {
     <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof window !== 'undefined' &amp;&amp; window.localStorage) {
-      Object.entries(values).forEach(([k, v]) =&gt; window.localStorage.setItem(`gems_${k}`, v));
+      Object.entries(values).forEach(([k, v]) =&gt; window.localStorage.setItem(`eprise_${k}`, v));
     }
     setSaved(true);
     setTimeout(<span class="fstat-no" title="function not covered" >()</span> =&gt; <span class="cstat-no" title="statement not covered" >setSaved(false),</span> 3000);
@@ -984,7 +984,7 @@ export default function Settings() {
   const handleReset = <span class="fstat-no" title="function not covered" >()</span> =&gt; {
 <span class="cstat-no" title="statement not covered" >    setValues(DEFAULTS);</span>
 <span class="cstat-no" title="statement not covered" >    if (typeof window !== 'undefined' &amp;&amp; window.localStorage) {</span>
-<span class="cstat-no" title="statement not covered" >      Object.keys(DEFAULTS).forEach(<span class="fstat-no" title="function not covered" >k </span>=&gt; <span class="cstat-no" title="statement not covered" >window.localStorage.removeItem(`gems_${k}`))</span>;</span>
+<span class="cstat-no" title="statement not covered" >      Object.keys(DEFAULTS).forEach(<span class="fstat-no" title="function not covered" >k </span>=&gt; <span class="cstat-no" title="statement not covered" >window.localStorage.removeItem(`eprise_${k}`))</span>;</span>
     }
   };
 &nbsp;

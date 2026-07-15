@@ -15,25 +15,25 @@ describe('themeStore', () => {
   it('should toggle theme mode', () => {
     useThemeStore.getState().toggle();
     expect(useThemeStore.getState().mode).toBe('light');
-    expect(window.localStorage.getItem('gems_theme_mode')).toBe('light');
+    expect(window.localStorage.getItem('eprise_theme_mode')).toBe('light');
 
     useThemeStore.getState().toggle();
     expect(useThemeStore.getState().mode).toBe('dark');
-    expect(window.localStorage.getItem('gems_theme_mode')).toBe('dark');
+    expect(window.localStorage.getItem('eprise_theme_mode')).toBe('dark');
   });
 
   it('should set theme mode explicitly', () => {
     useThemeStore.getState().setMode('light');
     expect(useThemeStore.getState().mode).toBe('light');
-    expect(window.localStorage.getItem('gems_theme_mode')).toBe('light');
+    expect(window.localStorage.getItem('eprise_theme_mode')).toBe('light');
 
     useThemeStore.getState().setMode('dark');
     expect(useThemeStore.getState().mode).toBe('dark');
-    expect(window.localStorage.getItem('gems_theme_mode')).toBe('dark');
+    expect(window.localStorage.getItem('eprise_theme_mode')).toBe('dark');
   });
 
   it('should restore theme mode from localStorage', () => {
-    window.localStorage.setItem('gems_theme_mode', 'light');
+    window.localStorage.setItem('eprise_theme_mode', 'light');
     useThemeStore.getState().restoreTheme();
     expect(useThemeStore.getState().mode).toBe('light');
   });

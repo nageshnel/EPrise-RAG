@@ -20,10 +20,10 @@ export default function LoginScreen() {
 
   const handleQuickLogin = (role: 'admin' | 'user') => {
     if (role === 'admin') {
-      setEmail('admin@gems.ai');
+      setEmail('admin@eprise.ai');
       setPassword('admin123');
     } else {
-      setEmail('user@gems.ai');
+      setEmail('user@eprise.ai');
       setPassword('user123');
     }
   };
@@ -80,7 +80,7 @@ export default function LoginScreen() {
             color: theme.text.primary, fontWeight: '800', fontSize: 28,
             letterSpacing: -0.5, textAlign: 'center',
           }}>
-            GEMS<Text style={{ color: theme.accent.primary }}>.</Text>AIRAG
+            EPRISE<Text style={{ color: theme.accent.primary }}>.</Text>AIRAG
           </Text>
           <Text style={{
             color: theme.text.secondary, fontSize: 12, letterSpacing: 3,
@@ -147,7 +147,7 @@ export default function LoginScreen() {
               <TextInput
                 value={email}
                 onChangeText={setEmail}
-                placeholder="admin@gems.ai"
+                placeholder="admin@eprise.ai"
                 placeholderTextColor={theme.text.muted}
                 autoCapitalize="none"
                 keyboardType="email-address"
@@ -263,7 +263,7 @@ export default function LoginScreen() {
                   <Text style={{ color: theme.accent.primary, fontSize: 9, fontWeight: '700' }}>ADMIN</Text>
                 </View>
               </View>
-              <Text style={{ color: theme.text.primary, fontSize: 11, fontWeight: '600' }}>admin@gems.ai</Text>
+              <Text style={{ color: theme.text.primary, fontSize: 11, fontWeight: '600' }}>admin@eprise.ai</Text>
               <Text style={{ color: theme.text.secondary, fontSize: 10, marginTop: 2 }}>Full platform access</Text>
               <Text style={{ color: theme.text.muted, fontSize: 10, marginTop: 8, fontFamily: 'monospace' }}>
                 pw: admin123
@@ -297,7 +297,7 @@ export default function LoginScreen() {
                   <Text style={{ color: mode === 'dark' ? '#60a5fa' : '#2563eb', fontSize: 9, fontWeight: '700' }}>USER</Text>
                 </View>
               </View>
-              <Text style={{ color: theme.text.primary, fontSize: 11, fontWeight: '600' }}>user@gems.ai</Text>
+              <Text style={{ color: theme.text.primary, fontSize: 11, fontWeight: '600' }}>user@eprise.ai</Text>
               <Text style={{ color: theme.text.secondary, fontSize: 10, marginTop: 2 }}>Chat inference only</Text>
               <Text style={{ color: theme.text.muted, fontSize: 10, marginTop: 8, fontFamily: 'monospace' }}>
                 pw: user123
@@ -309,7 +309,7 @@ export default function LoginScreen() {
         {/* Footer */}
         <View style={{ marginTop: 40, alignItems: 'center' }}>
           <Text style={{ color: theme.text.muted, fontSize: 10 }}>
-            GEMS AIRAG Platform · v0.1.0-beta · © 2026
+            EPRISE AIRAG Platform · v0.1.0-beta · © 2026
           </Text>
         </View>
       </ScrollView>

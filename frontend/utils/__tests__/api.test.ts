@@ -15,7 +15,7 @@ describe('api utilities', () => {
     });
 
     it('should return saved URL from localStorage', () => {
-      window.localStorage.setItem('gems_gatewayUrl', 'https://api.mygateway.com ');
+      window.localStorage.setItem('eprise_gatewayUrl', 'https://api.mygateway.com ');
       expect(getGatewayUrl()).toBe('https://api.mygateway.com');
     });
   });
@@ -26,7 +26,7 @@ describe('api utilities', () => {
     });
 
     it('should return saved token from localStorage', () => {
-      window.localStorage.setItem('gems_auth_token', 'my-secret-token');
+      window.localStorage.setItem('eprise_auth_token', 'my-secret-token');
       expect(getAuthToken()).toBe('my-secret-token');
     });
   });
@@ -49,7 +49,7 @@ describe('api utilities', () => {
     });
 
     it('should inject Authorization header if token is present', async () => {
-      window.localStorage.setItem('gems_auth_token', 'secret-jwt');
+      window.localStorage.setItem('eprise_auth_token', 'secret-jwt');
       await authFetch('another/endpoint', { method: 'POST', body: JSON.stringify({ a: 1 }) });
 
       expect(global.fetch).toHaveBeenCalledWith(

@@ -1,0 +1,24 @@
+spring:
+  devtools:
+    restart:
+      enabled: true
+  kafka:
+    bootstrap-servers: localhost:9092
+ai:
+  minio:
+    url: http://localhost:9000
+    access-key: eprise
+    secret-key: eprise-password
+grpc:
+  client:
+    ocr-service:
+      address: 'static://localhost:9086'
+      negotiation-type: plaintext
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4317

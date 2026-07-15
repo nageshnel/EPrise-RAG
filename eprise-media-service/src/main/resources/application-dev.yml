@@ -1,0 +1,23 @@
+spring:
+  devtools:
+    restart:
+      enabled: true
+  kafka:
+    bootstrap-servers: localhost:9092
+services:
+  whisper:
+    url: ${WHISPER_URL:https://openrouter.ai/api/v1}
+    api-key: ${OPENAI_API_KEY:}
+ai:
+  minio:
+    url: http://localhost:9000
+    access-key: eprise
+    secret-key: eprise-password
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4317

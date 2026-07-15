@@ -41,31 +41,31 @@ echo.
 echo Step 2: Spawning backend services in the background (same window)...
 
 echo Starting ETL Service (Port 8081)...
-start /b cmd /c "cd gems-ai-etl-service && mvnd spring-boot:run"
+start /b cmd /c "cd eprise-ai-etl-service && mvnd spring-boot:run"
 timeout /t 2 /nobreak >nul
 
 echo Starting Embedding Service (Port 8082)...
-start /b cmd /c "cd gems-embedding-service && mvnd spring-boot:run"
+start /b cmd /c "cd eprise-embedding-service && mvnd spring-boot:run"
 timeout /t 2 /nobreak >nul
 
 echo Starting Retrieval Service (Port 8083)...
-start /b cmd /c "cd gems-retrieval-service && mvnd spring-boot:run"
+start /b cmd /c "cd eprise-retrieval-service && mvnd spring-boot:run"
 timeout /t 2 /nobreak >nul
 
 echo Starting RAG Orchestrator (Port 8084)...
-start /b cmd /c "cd gems-rag-orchestrator-service && mvnd spring-boot:run"
+start /b cmd /c "cd eprise-rag-orchestrator-service && mvnd spring-boot:run"
 timeout /t 2 /nobreak >nul
 
 echo Starting Media Service (Port 8085)...
-start /b cmd /c "cd gems-media-service && mvnd spring-boot:run"
+start /b cmd /c "cd eprise-media-service && mvnd spring-boot:run"
 timeout /t 2 /nobreak >nul
 
 echo Starting OCR Service (Port 8086 / gRPC Port 9086)...
-start /b cmd /c "cd gems-ocr-service && mvnd spring-boot:run"
+start /b cmd /c "cd eprise-ocr-service && mvnd spring-boot:run"
 timeout /t 2 /nobreak >nul
 
 echo.
 echo Step 3: Starting API Gateway (Port 8080) in the foreground...
-cd gems-api-gateway
+cd eprise-api-gateway
 call mvnd spring-boot:run
 

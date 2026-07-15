@@ -137,7 +137,7 @@ export default function Settings() {
     if (typeof window !== 'undefined' && window.localStorage) {
       const stored: Record<string, string> = {};
       Object.keys(DEFAULTS).forEach(k => {
-        const v = window.localStorage.getItem(`gems_${k}`);
+        const v = window.localStorage.getItem(`eprise_${k}`);
         if (v) stored[k] = v;
       });
       if (Object.keys(stored).length) setValues(v => ({ ...v, ...stored }));
@@ -146,7 +146,7 @@ export default function Settings() {
 
   const handleSave = () => {
     if (typeof window !== 'undefined' && window.localStorage) {
-      Object.entries(values).forEach(([k, v]) => window.localStorage.setItem(`gems_${k}`, v));
+      Object.entries(values).forEach(([k, v]) => window.localStorage.setItem(`eprise_${k}`, v));
     }
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
@@ -155,7 +155,7 @@ export default function Settings() {
   const handleReset = () => {
     setValues(DEFAULTS);
     if (typeof window !== 'undefined' && window.localStorage) {
-      Object.keys(DEFAULTS).forEach(k => window.localStorage.removeItem(`gems_${k}`));
+      Object.keys(DEFAULTS).forEach(k => window.localStorage.removeItem(`eprise_${k}`));
     }
   };
 

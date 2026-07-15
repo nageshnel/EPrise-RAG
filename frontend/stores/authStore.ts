@@ -76,8 +76,8 @@ export const useAuthStore = create<AuthState>((set) => ({
 
       try {
         if (typeof window !== 'undefined' && window.localStorage) {
-          window.localStorage.setItem('gems_auth_token', data.token);
-          window.localStorage.setItem('gems_auth_session', JSON.stringify(user));
+          window.localStorage.setItem('eprise_auth_token', data.token);
+          window.localStorage.setItem('eprise_auth_session', JSON.stringify(user));
         }
       } catch { /* ignore */ }
 
@@ -92,8 +92,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: () => {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
-        window.localStorage.removeItem('gems_auth_token');
-        window.localStorage.removeItem('gems_auth_session');
+        window.localStorage.removeItem('eprise_auth_token');
+        window.localStorage.removeItem('eprise_auth_session');
       }
     } catch { /* ignore */ }
     set({ user: null, error: null });
@@ -102,8 +102,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   restoreSession: () => {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
-        const token = window.localStorage.getItem('gems_auth_token');
-        const session = window.localStorage.getItem('gems_auth_session');
+        const token = window.localStorage.getItem('eprise_auth_token');
+        const session = window.localStorage.getItem('eprise_auth_session');
         if (token && session) {
           const user = JSON.parse(session) as AuthUser;
           set({ user });

@@ -96,7 +96,7 @@ export default function Sidebar({ user, navItems, collapsed, onToggle, onLogout 
                 </View>
                 <View>
                   <Text style={{ color: theme.text.primary, fontWeight: '800', fontSize: 15, letterSpacing: 0.5 }}>
-                    GEMS<Text style={{ color: theme.accent.primary }}>.</Text>AIRAG
+                    EPRISE<Text style={{ color: theme.accent.primary }}>.</Text>AIRAG
                   </Text>
                   <Text style={{ color: theme.text.muted, fontSize: 10, letterSpacing: 1.5, marginTop: 1 }}>
                     RAG GATEWAY

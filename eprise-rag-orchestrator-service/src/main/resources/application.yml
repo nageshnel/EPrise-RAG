@@ -1,0 +1,26 @@
+server:
+  port: 8084
+spring:
+  application:
+    name: eprise-rag-orchestrator-service
+  profiles:
+    active: dev
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://openrouter.ai/api}
+      chat:
+        options:
+          model: ${SPRING_AI_CHAT_MODEL:openrouter/free}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true

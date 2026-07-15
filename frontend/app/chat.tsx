@@ -97,7 +97,7 @@ export default function ChatPlayground() {
     {
       id: '0',
       sender: 'ASSISTANT',
-      text: `Hello ${userName}! I'm your GEMS RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
+      text: `Hello ${userName}! I'm your EPRISE RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
     }
   ]);
   const [inputText, setInputText] = useState('');
@@ -175,7 +175,7 @@ export default function ChatPlayground() {
             {
               id: '0',
               sender: 'ASSISTANT',
-              text: `Hello ${userName}! I'm your GEMS RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
+              text: `Hello ${userName}! I'm your EPRISE RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
             }
           ]);
           setShowSuggestions(true);
@@ -295,7 +295,7 @@ export default function ChatPlayground() {
                 {
                   id: '0',
                   sender: 'ASSISTANT',
-                  text: `Hello ${userName}! I'm your GEMS RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
+                  text: `Hello ${userName}! I'm your EPRISE RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
                 }
               ]);
               setShowSuggestions(true);
@@ -453,7 +453,7 @@ export default function ChatPlayground() {
                 marginBottom: 5,
                 alignSelf: msg.sender === 'USER' ? 'flex-end' : 'flex-start',
               }}>
-                {msg.sender === 'USER' ? 'YOU' : '✦ GEMS RAG'}
+                {msg.sender === 'USER' ? 'YOU' : '✦ EPRISE RAG'}
               </Text>
 
               {/* Bubble */}
@@ -580,7 +580,7 @@ export default function ChatPlayground() {
             </Pressable>
           </View>
           <Text style={{ color: theme.text.muted, fontSize: 10, textAlign: 'center', marginTop: 6 }}>
-            GEMS RAG · Context window: 16K · {topK} retrieved chunks · pgvector cosine similarity
+            EPRISE RAG · Context window: 16K · {topK} retrieved chunks · pgvector cosine similarity
           </Text>
         </View>
       </View>

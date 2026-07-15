@@ -121,7 +121,7 @@ export default function RootLayout() {
                 <Text style={{ color: theme.accent.primary, fontSize: 14 }}>⬡</Text>
               </View>
               <Text style={{ color: theme.text.primary, fontWeight: '800', fontSize: 14, letterSpacing: 0.5 }}>
-                GEMS<Text style={{ color: theme.accent.primary }}>.</Text>AIRAG
+                EPRISE<Text style={{ color: theme.accent.primary }}>.</Text>AIRAG
               </Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>

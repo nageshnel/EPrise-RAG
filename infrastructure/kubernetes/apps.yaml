@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gems-api-gateway
+  name: eprise-api-gateway
   namespace: airag
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: gems-api-gateway
+      app: eprise-api-gateway
   template:
     metadata:
       labels:
-        app: gems-api-gateway
+        app: eprise-api-gateway
     spec:
       serviceAccountName: airag-discovery
       initContainers:
@@ -23,7 +23,7 @@ spec:
               mountPath: /skywalking/agent
       containers:
         - name: app
-          image: airag/gems-api-gateway:0.1.0
+          image: airag/eprise-api-gateway:0.1.0
           ports:
             - containerPort: 8080
           envFrom:
@@ -35,15 +35,15 @@ spec:
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
-              value: "gems-api-gateway"
+              value: "eprise-api-gateway"
             - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
               value: "skywalking-oap:11800"
             - name: SPRING_R2DBC_URL
-              value: r2dbc:postgresql://postgres:5432/gems_ai
+              value: r2dbc:postgresql://postgres:5432/eprise_ai
             - name: SPRING_R2DBC_USERNAME
-              value: gems
+              value: eprise
             - name: SPRING_R2DBC_PASSWORD
-              value: gems
+              value: eprise
           livenessProbe:
             httpGet:
               path: /actuator/health/liveness
@@ -75,12 +75,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gems-api-gateway
+  name: eprise-api-gateway
   namespace: airag
 spec:
   type: LoadBalancer
   selector:
-    app: gems-api-gateway
+    app: eprise-api-gateway
   ports:
     - port: 80
       targetPort: 8080
@@ -88,17 +88,17 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gems-ai-etl-service
+  name: eprise-ai-etl-service
   namespace: airag
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: gems-ai-etl-service
+      app: eprise-ai-etl-service
   template:
     metadata:
       labels:
-        app: gems-ai-etl-service
+        app: eprise-ai-etl-service
     spec:
       serviceAccountName: airag-discovery
       initContainers:
@@ -110,7 +110,7 @@ spec:
               mountPath: /skywalking/agent
       containers:
         - name: app
-          image: airag/gems-ai-etl-service:0.1.0
+          image: airag/eprise-ai-etl-service:0.1.0
           ports:
             - containerPort: 8081
           env:
@@ -119,7 +119,7 @@ spec:
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
-              value: "gems-ai-etl-service"
+              value: "eprise-ai-etl-service"
             - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
               value: "skywalking-oap:11800"
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
@@ -155,11 +155,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gems-ai-etl-service
+  name: eprise-ai-etl-service
   namespace: airag
 spec:
   selector:
-    app: gems-ai-etl-service
+    app: eprise-ai-etl-service
   ports:
     - port: 8081
       targetPort: 8081
@@ -167,17 +167,17 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gems-media-service
+  name: eprise-media-service
   namespace: airag
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: gems-media-service
+      app: eprise-media-service
   template:
     metadata:
       labels:
-        app: gems-media-service
+        app: eprise-media-service
     spec:
       serviceAccountName: airag-discovery
       initContainers:
@@ -189,7 +189,7 @@ spec:
               mountPath: /skywalking/agent
       containers:
         - name: app
-          image: airag/gems-media-service:0.1.0
+          image: airag/eprise-media-service:0.1.0
           ports:
             - containerPort: 8085
           envFrom:
@@ -201,7 +201,7 @@ spec:
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
-              value: "gems-media-service"
+              value: "eprise-media-service"
             - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
               value: "skywalking-oap:11800"
             - name: SERVICES_WHISPER_URL
@@ -239,11 +239,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gems-media-service
+  name: eprise-media-service
   namespace: airag
 spec:
   selector:
-    app: gems-media-service
+    app: eprise-media-service
   ports:
     - port: 8085
       targetPort: 8085
@@ -251,17 +251,17 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gems-embedding-service
+  name: eprise-embedding-service
   namespace: airag
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: gems-embedding-service
+      app: eprise-embedding-service
   template:
     metadata:
       labels:
-        app: gems-embedding-service
+        app: eprise-embedding-service
     spec:
       serviceAccountName: airag-discovery
       initContainers:
@@ -273,7 +273,7 @@ spec:
               mountPath: /skywalking/agent
       containers:
         - name: app
-          image: airag/gems-embedding-service:0.1.0
+          image: airag/eprise-embedding-service:0.1.0
           ports:
             - containerPort: 8082
           envFrom:
@@ -287,11 +287,11 @@ spec:
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
-              value: "gems-embedding-service"
+              value: "eprise-embedding-service"
             - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
               value: "skywalking-oap:11800"
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://postgres:5432/gems_ai
+              value: jdbc:postgresql://postgres:5432/eprise_ai
             - name: SPRING_KAFKA_BOOTSTRAP_SERVERS
               value: kafka:9092
           livenessProbe:
@@ -325,11 +325,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gems-embedding-service
+  name: eprise-embedding-service
   namespace: airag
 spec:
   selector:
-    app: gems-embedding-service
+    app: eprise-embedding-service
   ports:
     - port: 8082
       targetPort: 8082
@@ -337,17 +337,17 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gems-retrieval-service
+  name: eprise-retrieval-service
   namespace: airag
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: gems-retrieval-service
+      app: eprise-retrieval-service
   template:
     metadata:
       labels:
-        app: gems-retrieval-service
+        app: eprise-retrieval-service
     spec:
       serviceAccountName: airag-discovery
       initContainers:
@@ -359,7 +359,7 @@ spec:
               mountPath: /skywalking/agent
       containers:
         - name: app
-          image: airag/gems-retrieval-service:0.1.0
+          image: airag/eprise-retrieval-service:0.1.0
           ports:
             - containerPort: 8083
           envFrom:
@@ -373,11 +373,11 @@ spec:
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
-              value: "gems-retrieval-service"
+              value: "eprise-retrieval-service"
             - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
               value: "skywalking-oap:11800"
             - name: SPRING_DATASOURCE_URL
-              value: jdbc:postgresql://postgres:5432/gems_ai
+              value: jdbc:postgresql://postgres:5432/eprise_ai
             - name: SPRING_DATA_REDIS_HOST
               value: "valkey"
             - name: SPRING_DATA_REDIS_PORT
@@ -413,11 +413,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gems-retrieval-service
+  name: eprise-retrieval-service
   namespace: airag
 spec:
   selector:
-    app: gems-retrieval-service
+    app: eprise-retrieval-service
   ports:
     - port: 8083
       targetPort: 8083
@@ -425,17 +425,17 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gems-rag-orchestrator-service
+  name: eprise-rag-orchestrator-service
   namespace: airag
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: gems-rag-orchestrator-service
+      app: eprise-rag-orchestrator-service
   template:
     metadata:
       labels:
-        app: gems-rag-orchestrator-service
+        app: eprise-rag-orchestrator-service
     spec:
       serviceAccountName: airag-discovery
       initContainers:
@@ -447,7 +447,7 @@ spec:
               mountPath: /skywalking/agent
       containers:
         - name: app
-          image: airag/gems-rag-orchestrator-service:0.1.0
+          image: airag/eprise-rag-orchestrator-service:0.1.0
           ports:
             - containerPort: 8084
           envFrom:
@@ -461,7 +461,7 @@ spec:
             - name: JAVA_TOOL_OPTIONS
               value: "-javaagent:/skywalking/agent/skywalking-agent.jar"
             - name: SW_AGENT_NAME
-              value: "gems-rag-orchestrator-service"
+              value: "eprise-rag-orchestrator-service"
             - name: SW_AGENT_COLLECTOR_BACKEND_SERVICES
               value: "skywalking-oap:11800"
           livenessProbe:
@@ -495,11 +495,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: gems-rag-orchestrator-service
+  name: eprise-rag-orchestrator-service
   namespace: airag
 spec:
   selector:
-    app: gems-rag-orchestrator-service
+    app: eprise-rag-orchestrator-service
   ports:
     - port: 8084
       targetPort: 8084

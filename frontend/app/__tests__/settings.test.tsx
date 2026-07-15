@@ -20,7 +20,7 @@ describe('Settings Screen', () => {
 
   it('should restore configuration values from localStorage', () => {
     // Set storage BEFORE rendering — Settings reads it in useEffect on mount
-    window.localStorage.setItem('gems_gatewayUrl', 'https://gateway.internal.net');
+    window.localStorage.setItem('eprise_gatewayUrl', 'https://gateway.internal.net');
 
     const { getByPlaceholderText } = render(<Settings />);
 
@@ -39,7 +39,7 @@ describe('Settings Screen', () => {
       fireEvent.press(saveButton);
     });
 
-    expect(window.localStorage.getItem('gems_gatewayUrl')).toBe('http://custom-gateway.io:9000');
+    expect(window.localStorage.getItem('eprise_gatewayUrl')).toBe('http://custom-gateway.io:9000');
     expect(getByText('Configuration Saved')).toBeTruthy();
   });
 

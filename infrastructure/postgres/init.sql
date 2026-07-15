@@ -41,8 +41,8 @@ create extension if not exists pgcrypto;
 -- Insert default users with BCrypt-hashed passwords
 insert into app_user (username, password, role, enabled)
 values 
-    ('admin@gems.ai', crypt('admin123', gen_salt('bf', 10)), 'ADMIN', true),
-    ('user@gems.ai', crypt('user123', gen_salt('bf', 10)), 'USER', true)
+    ('admin@eprise.ai', crypt('admin123', gen_salt('bf', 10)), 'ADMIN', true),
+    ('user@eprise.ai', crypt('user123', gen_salt('bf', 10)), 'USER', true)
 on conflict (username) do nothing;
 
 create table if not exists chat_session (

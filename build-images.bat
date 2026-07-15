@@ -33,7 +33,7 @@ if %ERRORLEVEL% neq 0 (
 )
 
 :: List of microservices to build
-set "SERVICES=gems-api-gateway gems-ai-etl-service gems-media-service gems-embedding-service gems-retrieval-service gems-rag-orchestrator-service gems-ocr-service"
+set "SERVICES=eprise-api-gateway eprise-ai-etl-service eprise-media-service eprise-embedding-service eprise-retrieval-service eprise-rag-orchestrator-service eprise-ocr-service"
 
 echo.
 echo Step 3: Generating OCI Container Images via Buildpacks...

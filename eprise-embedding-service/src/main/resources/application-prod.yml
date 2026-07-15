@@ -1,0 +1,14 @@
+spring:
+  devtools:
+    restart:
+      enabled: false
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/eprise_ai}
+    username: ${SPRING_DATASOURCE_USERNAME:eprise}
+    password: ${SPRING_DATASOURCE_PASSWORD:eprise}
+  kafka:
+    bootstrap-servers: kafka:9092
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true

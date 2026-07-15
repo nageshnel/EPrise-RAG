@@ -20,19 +20,19 @@ spec:
             - containerPort: 5432
           env:
             - name: POSTGRES_DB
-              value: gems_ai
+              value: eprise_ai
             - name: POSTGRES_USER
-              value: gems
+              value: eprise
             - name: POSTGRES_PASSWORD
-              value: gems
+              value: eprise
           livenessProbe:
             exec:
               command:
                 - pg_isready
                 - -U
-                - gems
+                - eprise
                 - -d
-                - gems_ai
+                - eprise_ai
             initialDelaySeconds: 15
             periodSeconds: 10
             failureThreshold: 3
@@ -41,9 +41,9 @@ spec:
               command:
                 - pg_isready
                 - -U
-                - gems
+                - eprise
                 - -d
-                - gems_ai
+                - eprise_ai
             initialDelaySeconds: 5
             periodSeconds: 5
             failureThreshold: 3

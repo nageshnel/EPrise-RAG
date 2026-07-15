@@ -1308,7 +1308,7 @@ export default function ChatPlayground() {
     {
       id: '0',
       sender: 'ASSISTANT',
-      text: `Hello ${userName}! I'm your GEMS RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
+      text: `Hello ${userName}! I'm your EPRISE RAG Orchestrator. I can answer questions using context retrieved from your embedded documents. What would you like to explore?`,
     }
   ]);
   const [inputText, setInputText] = useState('');
@@ -1492,7 +1492,7 @@ export default function ChatPlayground() {
                 marginBottom: 5,
                 alignSelf: msg.sender === 'USER' ? 'flex-end' : 'flex-start',
               }}&gt;
-                {msg.sender === 'USER' ? 'YOU' : '✦ GEMS RAG'}
+                {msg.sender === 'USER' ? 'YOU' : '✦ EPRISE RAG'}
               &lt;/Text&gt;
 &nbsp;
               {/* Bubble */}
@@ -1619,7 +1619,7 @@ export default function ChatPlayground() {
             &lt;/Pressable&gt;
           &lt;/View&gt;
           &lt;Text style={{ color: theme.text.muted, fontSize: 10, textAlign: 'center', marginTop: 6 }}&gt;
-            GEMS RAG · Context window: 16K · {topK} retrieved chunks · pgvector cosine similarity
+            EPRISE RAG · Context window: 16K · {topK} retrieved chunks · pgvector cosine similarity
           &lt;/Text&gt;
         &lt;/View&gt;
       &lt;/View&gt;

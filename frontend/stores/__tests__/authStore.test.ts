@@ -44,8 +44,8 @@ describe('authStore', () => {
     expect(useAuthStore.getState().isLoading).toBe(false);
     expect(useAuthStore.getState().error).toBeNull();
 
-    expect(window.localStorage.getItem('gems_auth_token')).toBe('mock-jwt-token');
-    expect(JSON.parse(window.localStorage.getItem('gems_auth_session') || '{}')).toEqual({
+    expect(window.localStorage.getItem('eprise_auth_token')).toBe('mock-jwt-token');
+    expect(JSON.parse(window.localStorage.getItem('eprise_auth_session') || '{}')).toEqual({
       id: 'alice@v76.com',
       name: 'alice',
       email: 'alice@v76.com',
@@ -90,21 +90,21 @@ describe('authStore', () => {
   });
 
   it('should clear user session on logout', () => {
-    window.localStorage.setItem('gems_auth_token', 'token');
-    window.localStorage.setItem('gems_auth_session', '{}');
+    window.localStorage.setItem('eprise_auth_token', 'token');
+    window.localStorage.setItem('eprise_auth_session', '{}');
     useAuthStore.setState({ user: { id: '1', name: 'Bob', email: 'b@b.com', role: 'USER' } });
 
     useAuthStore.getState().logout();
 
     expect(useAuthStore.getState().user).toBeNull();
-    expect(window.localStorage.getItem('gems_auth_token')).toBeNull();
-    expect(window.localStorage.getItem('gems_auth_session')).toBeNull();
+    expect(window.localStorage.getItem('eprise_auth_token')).toBeNull();
+    expect(window.localStorage.getItem('eprise_auth_session')).toBeNull();
   });
 
   it('should restore session from localStorage', () => {
     const savedUser = { id: 'alice@v76.com', name: 'alice', email: 'alice@v76.com', role: 'ADMIN' };
-    window.localStorage.setItem('gems_auth_token', 'token');
-    window.localStorage.setItem('gems_auth_session', JSON.stringify(savedUser));
+    window.localStorage.setItem('eprise_auth_token', 'token');
+    window.localStorage.setItem('eprise_auth_session', JSON.stringify(savedUser));
 
     useAuthStore.getState().restoreSession();
 

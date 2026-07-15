@@ -12,14 +12,14 @@ kubectl apply -f whisper.yaml
 kubectl apply -f apps.yaml
 ```
 
-The public entrypoint is `gems-api-gateway`, exposed as a Kubernetes `LoadBalancer` service.
+The public entrypoint is `eprise-api-gateway`, exposed as a Kubernetes `LoadBalancer` service.
 
 Internal services use Spring Cloud Kubernetes Discovery and stable service names:
 
-- `gems-ai-etl-service`
-- `gems-media-service`
-- `gems-embedding-service`
-- `gems-retrieval-service`
-- `gems-rag-orchestrator-service`
+- `eprise-ai-etl-service`
+- `eprise-media-service`
+- `eprise-embedding-service`
+- `eprise-retrieval-service`
+- `eprise-rag-orchestrator-service`
 
 The gateway routes use `lb://service-name` so the Kubernetes discovery client and Spring Cloud LoadBalancer handle resource discovery and balancing.

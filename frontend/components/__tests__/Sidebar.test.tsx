@@ -39,7 +39,7 @@ describe('Sidebar', () => {
     );
 
     // Sidebar logo text
-    expect(getByText('GEMS.AIRAG')).toBeTruthy();
+    expect(getByText('EPRISE.AIRAG')).toBeTruthy();
     expect(getByText('Admin User')).toBeTruthy();
     expect(getByText('admin@v76.com')).toBeTruthy();
 
@@ -77,7 +77,7 @@ describe('Sidebar', () => {
     );
 
     // Menu text labels should be hidden
-    expect(queryByText('GEMS.AIRAG')).toBeNull();
+    expect(queryByText('EPRISE.AIRAG')).toBeNull();
     expect(queryByText('Dashboard')).toBeNull();
     
     // Admin emoji icon should be visible in collapsed mode

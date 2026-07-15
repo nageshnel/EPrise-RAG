@@ -140,7 +140,7 @@
 <span class="cline-any cline-neutral">&nbsp;</span></td><td class="text"><pre class="prettyprint lang-js">export function getGatewayUrl(): string {
   try {
     <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof window !== 'undefined' &amp;&amp; window.localStorage) {
-      const saved = window.localStorage.getItem('gems_gatewayUrl');
+      const saved = window.localStorage.getItem('eprise_gatewayUrl');
       if (saved) return saved.trim();
     }
   } catch { /* ignore */ }
@@ -150,7 +150,7 @@
 export function getAuthToken(): string | null {
   try {
     <span class="missing-if-branch" title="else path not taken" >E</span>if (typeof window !== 'undefined' &amp;&amp; window.localStorage) {
-      return window.localStorage.getItem('gems_auth_token');
+      return window.localStorage.getItem('eprise_auth_token');
     }
   } catch { /* ignore */ }
 <span class="cstat-no" title="statement not covered" >  return null;</span>

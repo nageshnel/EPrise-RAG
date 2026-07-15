@@ -1,0 +1,28 @@
+server:
+  port: 8086
+spring:
+  application:
+    name: eprise-ocr-service
+  profiles:
+    active: dev
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      base-url: ${OPENAI_BASE_URL:https://openrouter.ai/api}
+      chat:
+        options:
+          model: ${SPRING_AI_OCR_MODEL:openrouter/free}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+      show-components: always
+      probes:
+        enabled: true
+grpc:
+  server:
+    port: 9086

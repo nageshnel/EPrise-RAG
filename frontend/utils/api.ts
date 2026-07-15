@@ -1,7 +1,7 @@
 export function getGatewayUrl(): string {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = window.localStorage.getItem('gems_gatewayUrl');
+      const saved = window.localStorage.getItem('eprise_gatewayUrl');
       if (saved) return saved.trim();
     }
   } catch { /* ignore */ }
@@ -11,7 +11,7 @@ export function getGatewayUrl(): string {
 export function getAuthToken(): string | null {
   try {
     if (typeof window !== 'undefined' && window.localStorage) {
-      return window.localStorage.getItem('gems_auth_token');
+      return window.localStorage.getItem('eprise_auth_token');
     }
   } catch { /* ignore */ }
   return null;

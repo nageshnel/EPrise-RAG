@@ -27,11 +27,11 @@ spec:
             - name: SW_JDBC_DRIVER
               value: org.postgresql.Driver
             - name: SW_STORAGE_PLUGINS_JDBC_CONNECTION_URL
-              value: jdbc:postgresql://postgres:5432/gems_ai
+              value: jdbc:postgresql://postgres:5432/eprise_ai
             - name: SW_STORAGE_PLUGINS_JDBC_USER
-              value: gems
+              value: eprise
             - name: SW_STORAGE_PLUGINS_JDBC_PASSWORD
-              value: gems
+              value: eprise
           resources:
             requests:
               memory: "512Mi"
