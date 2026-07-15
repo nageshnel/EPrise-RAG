@@ -15,4 +15,13 @@ tmp/
 /out/
 /build/
 .agent/
+.agents/
+/docs/
+.vscode/
+.expo/
+.gradle/
+rename_project.py
+project-state.md
+
+
 
